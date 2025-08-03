@@ -1,0 +1,740 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MistralSDK</name>
+    </assembly>
+    <members>
+        <member name="T:MistralSDK.ChatCompletion.ChatCompletionErrorModelResponse">
+            <summary>
+            Represents a model-specific error response from the Mistral AI API.
+            This is typically returned when there are issues with the model itself or model-specific parameters.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionErrorModelResponse.Object">
+            <summary>
+            Gets or sets the object type. Always "error" for error responses.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionErrorModelResponse.Message">
+            <summary>
+            Gets or sets the error message describing what went wrong.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionErrorModelResponse.Type">
+            <summary>
+            Gets or sets the type of error that occurred.
+            Common values include: "invalid_request_error", "authentication_error", "rate_limit_error", "server_error".
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionErrorModelResponse.Param">
+            <summary>
+            Gets or sets the parameter that caused the error (if applicable).
+            This can be any object type depending on the error context.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionErrorModelResponse.Code">
+            <summary>
+            Gets or sets the error code for programmatic error handling.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionErrorModelResponse.Details">
+            <summary>
+            Gets or sets additional error details (if available).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionErrorModelResponse.Status">
+            <summary>
+            Gets or sets the HTTP status code associated with this error.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.ChatCompletionErrorModelResponse.GetUserFriendlyMessage">
+            <summary>
+            Gets a user-friendly error message.
+            </summary>
+            <returns>A formatted error message suitable for display to users.</returns>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.ChatCompletionErrorModelResponse.IsRetryable">
+            <summary>
+            Determines if this is a retryable error.
+            </summary>
+            <returns>True if the error is retryable; otherwise, false.</returns>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.ChatCompletionErrorModelResponse.GetRetryDelaySeconds">
+            <summary>
+            Gets the recommended retry delay in seconds.
+            </summary>
+            <returns>The recommended delay before retrying, or null if not retryable.</returns>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.ModelErrorTypes">
+            <summary>
+            Provides constants for common error types returned by the Mistral AI API.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ModelErrorTypes.InvalidRequestError">
+            <summary>
+            Error type for invalid or malformed requests.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ModelErrorTypes.AuthenticationError">
+            <summary>
+            Error type for authentication failures.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ModelErrorTypes.RateLimitError">
+            <summary>
+            Error type for rate limiting.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ModelErrorTypes.ServerError">
+            <summary>
+            Error type for server errors.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ModelErrorTypes.ModelNotFound">
+            <summary>
+            Error type for model not found.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ModelErrorTypes.InsufficientQuota">
+            <summary>
+            Error type for insufficient quota.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ModelErrorTypes.Timeout">
+            <summary>
+            Error type for request timeouts.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ModelErrorTypes.ContentPolicyViolation">
+            <summary>
+            Error type for content policy violations.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.ModelErrorCodes">
+            <summary>
+            Provides constants for common error codes returned by the Mistral AI API.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ModelErrorCodes.InvalidApiKey">
+            <summary>
+            Error code for invalid API key.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ModelErrorCodes.ExpiredApiKey">
+            <summary>
+            Error code for expired API key.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ModelErrorCodes.RateLimitExceeded">
+            <summary>
+            Error code for rate limit exceeded.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ModelErrorCodes.QuotaExceeded">
+            <summary>
+            Error code for quota exceeded.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ModelErrorCodes.ModelNotFound">
+            <summary>
+            Error code for model not found.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ModelErrorCodes.InvalidModel">
+            <summary>
+            Error code for invalid model.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ModelErrorCodes.ContentFilterViolation">
+            <summary>
+            Error code for content filter violation.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.ChatCompletionErrorResponse">
+            <summary>
+            Represents an error response from the Mistral AI API with detailed validation errors.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionErrorResponse.Detail">
+            <summary>
+            Gets or sets the list of detailed error information.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.ChatCompletionErrorResponse.GetFirstErrorMessage">
+            <summary>
+            Gets the first error message from the detail list.
+            </summary>
+            <returns>The first error message, or "Unknown error" if no details are available.</returns>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.ChatCompletionErrorResponse.GetAllErrorMessages">
+            <summary>
+            Gets all error messages as a single string.
+            </summary>
+            <returns>A string containing all error messages separated by semicolons.</returns>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.ErrorDetail">
+            <summary>
+            Represents detailed information about a specific error.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ErrorDetail.Type">
+            <summary>
+            Gets or sets the type of error that occurred.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ErrorDetail.Msg">
+            <summary>
+            Gets or sets the error message describing what went wrong.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ErrorDetail.Input">
+            <summary>
+            Gets or sets the input that caused the error.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ErrorDetail.Ctx">
+            <summary>
+            Gets or sets the context information about the error.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ErrorDetail.Loc">
+            <summary>
+            Gets or sets the location where the error occurred.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.ErrorInput">
+            <summary>
+            Represents the input that caused an error.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ErrorInput.Role">
+            <summary>
+            Gets or sets the role of the message that caused the error.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ErrorInput.Content">
+            <summary>
+            Gets or sets the content of the message that caused the error.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ErrorInput.Name">
+            <summary>
+            Gets or sets the name of the message sender (if applicable).
+            </summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.Ctx">
+            <summary>
+            Represents context information about an error.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.Ctx.Discriminator">
+            <summary>
+            Gets or sets the discriminator used to identify the error type.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.Ctx.Tag">
+            <summary>
+            Gets or sets the tag associated with the error.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.Ctx.ExpectedTags">
+            <summary>
+            Gets or sets the expected tags for the context.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.Ctx.AdditionalInfo">
+            <summary>
+            Gets or sets additional context information.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.ErrorTypes">
+            <summary>
+            Provides constants for common error types.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ErrorTypes.ValidationError">
+            <summary>
+            Error type for validation failures.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ErrorTypes.MissingField">
+            <summary>
+            Error type for missing required fields.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ErrorTypes.TypeError">
+            <summary>
+            Error type for type mismatches.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ErrorTypes.ValueError">
+            <summary>
+            Error type for value errors.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ErrorTypes.AuthenticationError">
+            <summary>
+            Error type for authentication failures.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ErrorTypes.RateLimitError">
+            <summary>
+            Error type for rate limiting.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.ErrorTypes.ServerError">
+            <summary>
+            Error type for server errors.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.ChatCompletionRequest">
+            <summary>
+            Represents a request for chat completion from the Mistral AI API.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionRequest.Model">
+            <summary>
+            Gets or sets the model identifier to use for the completion.
+            Required field that specifies which Mistral model to use.
+            </summary>
+            <example>mistral-tiny, mistral-small, mistral-medium, mistral-large</example>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionRequest.Temperature">
+            <summary>
+            Gets or sets the temperature parameter for controlling randomness in the response.
+            Values range from 0.0 (deterministic) to 2.0 (very random).
+            Default value is 0.7.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionRequest.TopP">
+            <summary>
+            Gets or sets the top-p parameter for nucleus sampling.
+            Controls diversity by considering only the most likely tokens.
+            Values range from 0.0 to 1.0. Default value is 1.0.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionRequest.MaxTokens">
+            <summary>
+            Gets or sets the maximum number of tokens to generate in the response.
+            If not specified, the model will generate until it reaches a natural stopping point.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionRequest.Messages">
+            <summary>
+            Gets or sets the list of messages in the conversation.
+            Required field that contains the conversation history and current prompt.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionRequest.PromptMode">
+            <summary>
+            Gets or sets the prompt mode for the request.
+            Optional parameter that can be used to specify special prompt handling.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionRequest.SafePrompt">
+            <summary>
+            Gets or sets whether to enable safe prompt mode.
+            When enabled, the API will apply additional safety filters.
+            Default value is false.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionRequest.RandomSeed">
+            <summary>
+            Gets or sets the random seed for reproducible results.
+            When set, the model will generate consistent results for the same input.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionRequest.Stream">
+            <summary>
+            Gets or sets whether to stream the response.
+            When true, the response will be streamed token by token.
+            Default value is false.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.ChatCompletionRequest.IsValid">
+            <summary>
+            Validates the request parameters.
+            </summary>
+            <returns>True if the request is valid; otherwise, false.</returns>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.MessageRequest">
+            <summary>
+            Represents a message in a chat conversation.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.MessageRequest.Role">
+            <summary>
+            Gets or sets the role of the message sender.
+            Valid values are: "system", "user", "assistant".
+            </summary>
+            <example>user, assistant, system</example>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.MessageRequest.Content">
+            <summary>
+            Gets or sets the content of the message.
+            Required field that contains the actual text of the message.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.MessageRequest.IsValid">
+            <summary>
+            Validates the message parameters.
+            </summary>
+            <returns>True if the message is valid; otherwise, false.</returns>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.MessageRequest.IsValidRole(System.String)">
+            <summary>
+            Checks if the role is valid.
+            </summary>
+            <param name="role">The role to validate.</param>
+            <returns>True if the role is valid; otherwise, false.</returns>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.MistralModels">
+            <summary>
+            Provides constants for commonly used model names.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.MistralModels.Tiny">
+            <summary>
+            Mistral Tiny model - fastest and most cost-effective.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.MistralModels.Small">
+            <summary>
+            Mistral Small model - good balance of speed and quality.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.MistralModels.Medium">
+            <summary>
+            Mistral Medium model - high quality with good performance.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.MistralModels.Large">
+            <summary>
+            Mistral Large model - highest quality, best for complex tasks.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.MessageRoles">
+            <summary>
+            Provides constants for message roles.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.MessageRoles.System">
+            <summary>
+            System role - used for system instructions and context.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.MessageRoles.User">
+            <summary>
+            User role - represents messages from the user.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.MessageRoles.Assistant">
+            <summary>
+            Assistant role - represents responses from the AI assistant.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.ChatCompletionResponse">
+            <summary>
+            Represents a successful response from the Mistral AI chat completion API.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionResponse.Id">
+            <summary>
+            Gets or sets the unique identifier for the completion request.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionResponse.Object">
+            <summary>
+            Gets or sets the object type. Always "chat.completion" for chat completions.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionResponse.Model">
+            <summary>
+            Gets or sets the model identifier used for the completion.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionResponse.Created">
+            <summary>
+            Gets or sets the timestamp when the completion was created (Unix timestamp).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionResponse.Choices">
+            <summary>
+            Gets or sets the list of completion choices generated by the model.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionResponse.Usage">
+            <summary>
+            Gets or sets the token usage information for the request.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.ChatCompletionResponse.GetFirstChoice">
+            <summary>
+            Gets the first choice from the completion response.
+            </summary>
+            <returns>The first choice, or null if no choices are available.</returns>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.ChatCompletionResponse.GetFirstChoiceContent">
+            <summary>
+            Gets the content of the first choice message.
+            </summary>
+            <returns>The content of the first message, or empty string if not available.</returns>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.UsageInfo">
+            <summary>
+            Represents token usage information for a completion request.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.UsageInfo.PromptTokens">
+            <summary>
+            Gets or sets the number of tokens in the prompt.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.UsageInfo.CompletionTokens">
+            <summary>
+            Gets or sets the number of tokens in the completion.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.UsageInfo.TotalTokens">
+            <summary>
+            Gets or sets the total number of tokens used (prompt + completion).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.UsageInfo.GetEstimatedCost(System.String)">
+            <summary>
+            Gets the total cost in USD based on the model and token usage.
+            </summary>
+            <param name="model">The model used for the completion.</param>
+            <returns>The estimated cost in USD.</returns>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.ChatCompletionChoice">
+            <summary>
+            Represents a single completion choice from the model.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionChoice.Index">
+            <summary>
+            Gets or sets the index of this choice in the response.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionChoice.Message">
+            <summary>
+            Gets or sets the message content for this choice.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionChoice.FinishReason">
+            <summary>
+            Gets or sets the reason why the completion finished.
+            Common values: "stop", "length", "content_filter".
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ChatCompletionChoice.LogProbs">
+            <summary>
+            Gets or sets the log probability information for this choice (if requested).
+            </summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.MessageResponse">
+            <summary>
+            Represents a message in the completion response.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.MessageResponse.Role">
+            <summary>
+            Gets or sets the role of the message sender.
+            For completions, this is typically "assistant".
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.MessageResponse.Content">
+            <summary>
+            Gets or sets the content of the message.
+            This is the actual text generated by the model.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.MessageResponse.ToolCalls">
+            <summary>
+            Gets or sets the tool calls made by the model (if any).
+            Used when the model decides to call functions.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.MessageResponse.Prefix">
+            <summary>
+            Gets or sets whether this message is a prefix.
+            Used in streaming responses.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.ToolCall">
+            <summary>
+            Represents a tool call made by the model.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ToolCall.Id">
+            <summary>
+            Gets or sets the unique identifier for this tool call.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ToolCall.Type">
+            <summary>
+            Gets or sets the type of tool being called.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ToolCall.Function">
+            <summary>
+            Gets or sets the function call details.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ToolCall.Index">
+            <summary>
+            Gets or sets the index of this tool call in the sequence.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.Function">
+            <summary>
+            Represents a function call within a tool call.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.Function.Name">
+            <summary>
+            Gets or sets the name of the function to call.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.Function.Arguments">
+            <summary>
+            Gets or sets the arguments for the function call as a JSON string.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.FinishReasons">
+            <summary>
+            Provides constants for finish reasons.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.FinishReasons.Stop">
+            <summary>
+            The model reached a natural stopping point.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.FinishReasons.Length">
+            <summary>
+            The model reached the maximum token limit.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.FinishReasons.ContentFilter">
+            <summary>
+            The content was filtered due to safety concerns.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.FinishReasons.ToolCalls">
+            <summary>
+            The model made a tool call.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Examples.SimpleExample">
+            <summary>
+            Simple example demonstrating basic usage of the Mistral SDK.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Examples.SimpleExample.RunBasicExample">
+            <summary>
+            Demonstrates a basic chat completion request.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Examples.SimpleExample.RunConversationExample">
+            <summary>
+            Demonstrates a conversation with multiple messages.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Examples.SimpleExample.RunErrorHandlingExample">
+            <summary>
+            Demonstrates error handling and validation.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Examples.SimpleExample.Main(System.String[])">
+            <summary>
+            Main method to run all examples.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.MistralClient">
+            <summary>
+            Client for interacting with the Mistral AI API.
+            Provides methods to send chat completion requests and handle responses.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.MistralClient.BaseUrl">
+            <summary>
+            The base URL for the Mistral AI API.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.MistralClient.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MistralSDK.MistralClient"/> class.
+            </summary>
+            <param name="apiKey">The API key for authentication with Mistral AI.</param>
+            <exception cref="T:System.ArgumentException">Thrown when the API key is null, empty, or whitespace.</exception>
+        </member>
+        <member name="M:MistralSDK.MistralClient.ChatCompletionAsync(MistralSDK.ChatCompletion.ChatCompletionRequest)">
+            <summary>
+            Sends a chat completion request to the Mistral AI API.
+            </summary>
+            <param name="request">The chat completion request containing the model, messages, and parameters.</param>
+            <returns>A <see cref="T:MistralSDK.MistralResponse"/> object containing the API response or error information.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the request is null.</exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">Thrown when the HTTP request fails.</exception>
+        </member>
+        <member name="M:MistralSDK.MistralClient.ParseResponse(System.Int32,System.String)">
+            <summary>
+            Parses the API response and creates a standardized <see cref="T:MistralSDK.MistralResponse"/> object.
+            </summary>
+            <param name="statusCode">The HTTP status code from the API response.</param>
+            <param name="jsonResponse">The JSON response body from the API.</param>
+            <returns>A <see cref="T:MistralSDK.MistralResponse"/> object with parsed content or error information.</returns>
+        </member>
+        <member name="M:MistralSDK.MistralClient.Dispose(System.Boolean)">
+            <summary>
+            Releases the unmanaged resources used by the <see cref="T:MistralSDK.MistralClient"/> and optionally releases the managed resources.
+            </summary>
+            <param name="disposing">True to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
+        </member>
+        <member name="M:MistralSDK.MistralClient.Dispose">
+            <summary>
+            Releases all resources used by the <see cref="T:MistralSDK.MistralClient"/>.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.MistralResponse">
+            <summary>
+            Represents a standardized response from the Mistral AI API.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.MistralResponse.StatusCode">
+            <summary>
+            Gets or sets the HTTP status code of the response.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.MistralResponse.Message">
+            <summary>
+            Gets or sets the message content from the API response.
+            For successful requests, this contains the generated text.
+            For errors, this contains the error message.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.MistralResponse.IsSuccess">
+            <summary>
+            Gets or sets a value indicating whether the request was successful.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.MistralResponse.Model">
+            <summary>
+            Gets or sets the model used for the completion (only available for successful responses).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.MistralResponse.Usage">
+            <summary>
+            Gets or sets the usage information from the API response (only available for successful responses).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.MistralResponse.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MistralSDK.MistralResponse"/> class.
+            </summary>
+            <param name="statusCode">The HTTP status code of the response.</param>
+        </member>
+    </members>
+</doc>
