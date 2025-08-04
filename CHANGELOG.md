@@ -1,220 +1,129 @@
 # Changelog
 
-All notable changes to the Mistral AI SDK for .NET will be documented in this file.
+All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.0.0] - 2025-08-03
 
-### 🎉 Initial Release
-
-This is the first official release of the Mistral AI SDK for .NET, providing a comprehensive and user-friendly interface to interact with the Mistral AI API.
-
 ### ✨ Added
+- **Core Functionality**
+  - Complete Mistral AI chat completion API support
+  - Full async/await implementation for all operations
+  - Type-safe request and response objects
+  - Comprehensive error handling with detailed error messages
 
-#### Core Functionality
-- **Chat Completions**: Full support for Mistral AI chat completion API
-- **Multiple Models**: Support for all available Mistral models:
-  - `mistral-tiny` - Fastest and most cost-effective
-  - `mistral-small` - Good balance of speed and quality
-  - `mistral-medium` - High quality with good performance
-  - `mistral-large` - Highest quality, best for complex tasks
+- **Client Features**
+  - `MistralClient` class with proper resource management (IDisposable)
+  - `ChatCompletionAsync` method for sending requests
+  - Automatic JSON serialization with snake_case naming
+  - Built-in HTTP client with Bearer token authentication
+  - Support for all HTTP status codes and error scenarios
 
-#### Client Features
-- **MistralClient Class**: Main client for API interactions
-  - Async/await support for all operations
-  - Proper resource management with `IDisposable` implementation
-  - Comprehensive error handling and validation
-  - Automatic JSON serialization/deserialization
-  - Bearer token authentication
+- **Request Models**
+  - `ChatCompletionRequest` with all Mistral API parameters
+  - `MessageRequest` for individual conversation messages
+  - Support for system, user, and assistant message roles
+  - Configurable parameters: temperature, top_p, max_tokens, safe_prompt, stream
+  - Built-in validation with data annotations
 
-#### Request/Response Models
-- **ChatCompletionRequest**: Complete request model with all parameters
-  - Model selection with constants
-  - Message history management
-  - Temperature, TopP, and MaxTokens controls
-  - Safe prompt and streaming options
-  - Built-in validation with `IsValid()` method
+- **Response Models**
+  - `ChatCompletionResponse` for successful API responses
+  - `ChatCompletionErrorResponse` for validation errors
+  - `ChatCompletionErrorModelResponse` for model-specific errors
+  - `MistralResponse` as standardized wrapper for all responses
+  - `UsageInfo` with token counting and cost estimation
 
-- **MessageRequest**: Individual message model
-  - Role-based messages (system, user, assistant)
-  - Content and optional name fields
-  - Validation for message roles
+- **Error Handling**
+  - Comprehensive error parsing for different API error formats
+  - User-friendly error messages with retry recommendations
+  - HTTP status code mapping
+  - Timeout handling for network issues
+  - Null reference protection throughout
 
-- **MistralResponse**: Standardized response wrapper
-  - Success/failure indication
-  - HTTP status codes
-  - Error messages and model information
-  - Token usage statistics
+- **Constants and Utilities**
+  - `MistralModels` static class with all available models
+  - `MessageRoles` static class for message role constants
+  - `FinishReasons` static class for completion reasons
+  - `ErrorTypes` and `ModelErrorTypes` for error categorization
+  - `ModelErrorCodes` for specific error codes
 
-#### Response Models
-- **ChatCompletionResponse**: Full API response model
-  - Choice management with `GetFirstChoice()` and `GetFirstChoiceContent()`
-  - Usage information with cost estimation
-  - Model metadata and timestamps
+- **Technical Features**
+  - .NET 8.0 support with latest C# features
+  - Nullable reference types for better type safety
+  - Data annotations for request validation
+  - XML documentation for all public APIs
+  - Optimized JSON serialization with custom naming policy
+  - Proper resource disposal with IDisposable pattern
 
-- **UsageInfo**: Token usage tracking
-  - Prompt, completion, and total token counts
-  - Cost estimation based on current pricing
-  - Support for all Mistral models
+- **Documentation**
+  - Comprehensive XML documentation for all classes and methods
+  - Usage examples and best practices
+  - Error handling guide with common scenarios
+  - Cost estimation examples
+  - API reference with all available models and parameters
 
-#### Error Handling
-- **ChatCompletionErrorResponse**: Validation error handling
-  - Detailed error information
-  - Multiple error formats support
-  - Helper methods for error message extraction
+- **Testing**
+  - Complete test suite with MSTest framework
+  - Unit tests for all public methods
+  - Integration tests for API communication
+  - Error scenario testing
+  - Validation testing for request objects
+  - Multi-model testing
+  - Conversation history testing
+  - Cost estimation testing
 
-- **ChatCompletionErrorModelResponse**: Model-specific errors
-  - User-friendly error messages
-  - Retry logic with `IsRetryable()` and `GetRetryDelaySeconds()`
-  - Error type and code constants
+- **Development Features**
+  - Clean project structure with proper namespaces
+  - Consistent coding style and naming conventions
+  - Comprehensive error handling patterns
+  - Type-safe constants and enums
+  - Proper separation of concerns
 
-#### Constants and Utilities
-- **MistralModels**: Model name constants
-- **MessageRoles**: Message role constants
-- **FinishReasons**: Completion reason constants
-- **ErrorTypes**: Error type constants
-- **ModelErrorTypes**: Model error type constants
-- **ModelErrorCodes**: Error code constants
+- **Security**
+  - Secure API key handling
+  - Input validation and sanitization
+  - Safe error message handling (no sensitive data exposure)
+  - Proper resource cleanup
 
-### 🔧 Technical Features
+- **Package Information**
+  - NuGet package configuration
+  - MIT License
+  - Comprehensive metadata
+  - Source files included for debugging
+  - Documentation files included
 
-#### Code Quality
-- **XML Documentation**: Comprehensive documentation for all public APIs
-- **Data Annotations**: Built-in validation with `[Required]`, `[Range]` attributes
-- **Nullable Reference Types**: Full .NET 8 nullable support
-- **Async Patterns**: Proper async/await implementation
-- **Resource Management**: `IDisposable` pattern for proper cleanup
-
-#### Error Handling
-- **Exception Handling**: Comprehensive exception management
-- **HTTP Error Handling**: Proper HTTP status code handling
-- **Validation Errors**: Input validation with detailed error messages
-- **Retry Logic**: Built-in retry recommendations for transient errors
-
-#### Performance
-- **JSON Optimization**: Configured JSON serialization options
-- **HTTP Client Reuse**: Efficient HTTP client management
-- **Memory Management**: Proper disposal of resources
-
-### 📚 Documentation
-
-#### Comprehensive Documentation
-- **API Reference**: Complete documentation of all classes and methods
-- **Usage Examples**: Multiple examples for different scenarios
-- **Best Practices**: Guidelines for optimal usage
-- **Error Handling Guide**: Comprehensive error handling documentation
-
-#### Code Examples
-- **Basic Usage**: Simple chat completion examples
-- **Advanced Usage**: Complex conversation management
-- **Error Handling**: Error handling patterns
-- **Cost Estimation**: Usage tracking and cost calculation
-
-### 🧪 Testing
-
-#### Test Coverage
-- **Unit Tests**: Comprehensive test suite with MSTest
-- **Integration Tests**: Real API integration testing
-- **Error Scenarios**: Testing of various error conditions
-- **Validation Tests**: Input validation testing
-- **Conversation Tests**: Multi-turn conversation testing
-
-#### Test Scenarios
-- **Successful Requests**: Basic functionality testing
-- **Error Handling**: API error response testing
-- **Validation**: Input parameter validation
-- **Model Testing**: All model types testing
-- **Cost Estimation**: Usage tracking verification
-- **Message History**: Conversation context testing
-
-### 🛠️ Development Features
-
-#### Project Structure
-- **Modern .NET 8**: Latest .NET framework support
-- **NuGet Ready**: Proper package configuration
-- **Documentation Generation**: XML documentation support
-- **License**: MIT license for open source use
-
-#### Build Configuration
-- **Target Framework**: .NET 8.0
-- **Nullable Reference Types**: Enabled for better type safety
-- **Implicit Usings**: Enabled for cleaner code
-- **Documentation File**: XML documentation generation
-
-### 🔒 Security
-
-#### Authentication
-- **API Key Validation**: Proper API key validation
-- **Bearer Token**: Secure authentication headers
-- **Input Validation**: Comprehensive input sanitization
-
-#### Data Handling
-- **JSON Security**: Safe JSON serialization
-- **Error Information**: Secure error message handling
-- **Resource Cleanup**: Proper disposal of sensitive resources
-
-### 📦 Package Information
-
-#### NuGet Package
-- **Package ID**: MistralSDK
-- **Version**: 1.0.0
+### 🔧 Technical Details
 - **Target Framework**: .NET 8.0
 - **Dependencies**: None (uses built-in .NET libraries)
-
-#### Package Metadata
-- **Title**: Mistral AI SDK for .NET
-- **Description**: Comprehensive .NET SDK for Mistral AI API
-- **Authors**: Your Name
 - **License**: MIT
-- **Tags**: mistral, ai, chat, completion, api, sdk, dotnet
+- **Repository**: GitHub with proper Git configuration
+- **Documentation**: XML + Markdown
+- **Testing**: MSTest with comprehensive coverage
 
-### 🚀 Getting Started
+### 📚 Documentation
+- Complete API reference
+- Usage examples for common scenarios
+- Error handling patterns
+- Cost estimation guide
+- Best practices and recommendations
 
-#### Quick Installation
-```bash
-dotnet add package MistralSDK
-```
-
-#### Basic Usage
-```csharp
-using var client = new MistralClient("your-api-key");
-var response = await client.ChatCompletionAsync(request);
-```
-
-### 🔮 Future Enhancements
-
-#### Planned Features for Next Versions
-- **Streaming Support**: Real-time response streaming
-- **Function Calling**: Tool and function call support
-- **Embeddings**: Text embedding capabilities
-- **Fine-tuning**: Model fine-tuning support
-- **Rate Limiting**: Built-in rate limiting and retry logic
-- **Logging**: Comprehensive logging support
-- **Configuration**: Flexible configuration options
-
-### 📝 Breaking Changes
-
-This is the initial release, so there are no breaking changes to document.
-
-### 🐛 Known Issues
-
-No known issues at this time.
-
-### 🙏 Acknowledgments
-
-- Mistral AI for providing the excellent API
-- .NET community for the robust framework
-- Contributors and testers for feedback and improvements
+### 🧪 Testing Coverage
+- Basic functionality tests
+- Error handling tests
+- Validation tests
+- Multi-model tests
+- Conversation history tests
+- Cost estimation tests
+- Resource management tests
 
 ---
 
 ## Version History
 
-### [1.0.0] - 2024-12-19
-- Initial release with chat completion support
-- Comprehensive error handling and validation
-- Full documentation and examples
-- Complete test suite
-- MIT license 
+### [1.0.0] - Initial Release
+- Complete Mistral AI SDK implementation
+- Full chat completion support
+- Comprehensive error handling
+- Complete documentation and testing 

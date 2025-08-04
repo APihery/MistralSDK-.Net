@@ -8,15 +8,16 @@
     
     <!-- Project metadata -->
     <Title>Mistral AI SDK for .NET</Title>
-    <Description>A comprehensive .NET SDK for interacting with the Mistral AI API, providing easy-to-use methods for chat completions and other AI services.</Description>
-    <Authors>Your Name</Authors>
-    <Company>Your Company</Company>
+    <Description>A comprehensive .NET SDK for interacting with the Mistral AI API, providing easy-to-use methods for chat completions and other AI services. Features include full async support, comprehensive error handling, type safety, and built-in validation.</Description>
+    <Authors>Aymeric Pihery</Authors>
+    <Company>Aymeric Pihery</Company>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>mistral;ai;chat;completion;api;sdk;dotnet</PackageTags>
-    <PackageProjectUrl>https://github.com/yourusername/mistral-sdk-dotnet</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/yourusername/mistral-sdk-dotnet</RepositoryUrl>
+    <PackageTags>mistral;ai;chat;completion;api;sdk;dotnet;net8;async</PackageTags>
+    <PackageProjectUrl>https://github.com/APihery/MistralSDK-.Net/tree/main</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/APihery/MistralSDK-.Net/tree/main</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <RepositoryBranch>main</RepositoryBranch>
     
     <!-- Documentation settings -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -27,6 +28,47 @@
     <Version>1.0.0</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
+    
+    <!-- Package metadata -->
+    <PackageId>MistralSDK</PackageId>
+    <PackageVersion>1.0.0</PackageVersion>
+    <PackageReleaseNotes>
+      ## Version 1.0.0 - Initial Release
+      
+      ### ✨ Features
+      - Full support for Mistral AI chat completion API
+      - Support for all Mistral models (Tiny, Small, Medium, Large)
+      - Comprehensive error handling and validation
+      - Type-safe request and response objects
+      - Full async/await support
+      - Resource management with IDisposable
+      - Built-in cost estimation
+      - XML documentation for all public APIs
+      
+      ### 🔧 Technical Features
+      - .NET 8.0 support
+      - Nullable reference types
+      - Data annotations for validation
+      - JSON serialization optimization
+      - Comprehensive test suite
+      
+      ### 📚 Documentation
+      - Complete API reference
+      - Usage examples and best practices
+      - Error handling guide
+      - Cost estimation examples
+    </PackageReleaseNotes>
+    
+    <!-- Additional package properties -->
+    <Copyright>Copyright 2025</Copyright>
+    <PackageIcon>Logo_MistralSDK.png</PackageIcon>
+    <PackageIconUrl>https://github.com/APihery/MistralSDK-.Net/tree/main/MistralSDK/Logo_MistralSDK.png</PackageIconUrl>
+    <PackageLicenseUrl>https://github.com/APihery/MistralSDK-.Net/blob/main/LICENSE</PackageLicenseUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageCategory>AI/Machine Learning</PackageCategory>
+    <PackageLanguage>en-US</PackageLanguage>
+    <PackageServiceable>true</PackageServiceable>
+    <PackageDevelopmentDependency>false</PackageDevelopmentDependency>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,7 +77,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="..\README.md" Pack="true" PackagePath="/" />
+    <None Include="..\CHANGELOG.md" Pack="true" PackagePath="/" />
+    <None Include="..\LICENSE" Pack="true" PackagePath="/" />
+    <None Include="..\Logo_MistralSDK.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>

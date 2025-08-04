@@ -2,61 +2,46 @@
 
 A comprehensive .NET SDK for interacting with the Mistral AI API, providing easy-to-use methods for chat completions and other AI services.
 
-## ✨ Features
+## Features
 
-- ✅ **Chat Completions**: Generate text completions using Mistral's advanced language models
-- ✅ **Multiple Models**: Support for all Mistral models (Tiny, Small, Medium, Large)
-- ✅ **Error Handling**: Comprehensive error handling with detailed error messages
-- ✅ **Type Safety**: Full type safety with strongly-typed request and response objects
-- ✅ **Async Support**: Full async/await support for all operations
-- ✅ **Resource Management**: Proper disposal of resources with IDisposable implementation
-- ✅ **Validation**: Built-in request validation with data annotations
-- ✅ **Documentation**: Comprehensive XML documentation for all public APIs
+- ✅ Full support for Mistral AI chat completion API
+- ✅ Support for all Mistral models (Tiny, Small, Medium, Large)
+- ✅ Comprehensive error handling and validation
+- ✅ Type-safe request and response objects
+- ✅ Full async/await support
+- ✅ Resource management with IDisposable
+- ✅ Built-in cost estimation
+- ✅ XML documentation for all public APIs
 
-> 📋 **For detailed feature information and version history, see [CHANGELOG.md](CHANGELOG.md)**
-
-## 🚀 Quick Start
-
-### Installation
-
-```bash
-dotnet add package MistralSDK
-```
-
-### Basic Usage
+## Quick Start
 
 ```csharp
 using MistralSDK;
 using MistralSDK.ChatCompletion;
 
-// Initialize the client with your API key
-using var client = new MistralClient("your-api-key-here");
+// Initialize the client
+var client = new MistralClient("your-api-key");
 
 // Create a chat completion request
 var request = new ChatCompletionRequest
 {
-    Model = MistralModels.Small,
+    Model = MistralModels.MistralTiny,
     Messages = new List<MessageRequest>
     {
-        new MessageRequest
-        {
-            Role = MessageRoles.User,
-            Content = "Hello! How are you today?"
-        }
+        new MessageRequest { Role = MessageRoles.User, Content = "Hello, how are you?" }
     },
-    Temperature = 0.7,
-    MaxTokens = 100
+    MaxTokens = 100,
+    Temperature = 0.7
 };
 
 // Send the request
 var response = await client.ChatCompletionAsync(request);
 
-// Check if the request was successful
 if (response.IsSuccess)
 {
     Console.WriteLine($"Response: {response.Message}");
-    Console.WriteLine($"Model used: {response.Model}");
-    Console.WriteLine($"Tokens used: {response.Usage?.TotalTokens}");
+    Console.WriteLine($"Model: {response.Model}");
+    Console.WriteLine($"Usage: {response.Usage?.GetEstimatedCost():C}");
 }
 else
 {
@@ -64,166 +49,41 @@ else
 }
 ```
 
-## 📚 Documentation
+## Installation
 
-### API Reference
-
-#### MistralClient
-```csharp
-public MistralClient(string apiKey)
-public async Task<MistralResponse> ChatCompletionAsync(ChatCompletionRequest request)
-```
-
-#### ChatCompletionRequest
-```csharp
-public string Model { get; set; }                    // Required: Model identifier
-public List<MessageRequest> Messages { get; set; }   // Required: Conversation messages
-public double Temperature { get; set; }              // Optional: Randomness (0.0-2.0)
-public double TopP { get; set; }                     // Optional: Nucleus sampling (0.0-1.0)
-public int? MaxTokens { get; set; }                  // Optional: Maximum tokens to generate
-public bool SafePrompt { get; set; }                 // Optional: Enable safety filters
-public bool Stream { get; set; }                     // Optional: Enable streaming
-```
-
-#### MistralResponse
-```csharp
-public int StatusCode { get; set; }                  // HTTP status code
-public string Message { get; set; }                  // Response content or error message
-public bool IsSuccess { get; set; }                  // Whether the request was successful
-public string? Model { get; set; }                   // Model used (successful responses)
-public UsageInfo? Usage { get; set; }                // Token usage information
-```
-
-### Available Models
-
-```csharp
-MistralModels.Tiny    // Fastest, most cost-effective
-MistralModels.Small   // Good balance of speed and quality
-MistralModels.Medium  // High quality with good performance
-MistralModels.Large   // Highest quality, best for complex tasks
-```
-
-### Message Roles
-
-```csharp
-MessageRoles.System    // System instructions and context
-MessageRoles.User      // Messages from the user
-MessageRoles.Assistant // Responses from the AI assistant
-```
-
-## 💡 Examples
-
-### Conversation Management
-
-```csharp
-var conversation = new List<MessageRequest>
-{
-    new MessageRequest { Role = MessageRoles.System, Content = "You are a helpful assistant." },
-    new MessageRequest { Role = MessageRoles.User, Content = "What is the capital of France?" }
-};
-
-var request = new ChatCompletionRequest
-{
-    Model = MistralModels.Small,
-    Messages = conversation
-};
-
-var response = await client.ChatCompletionAsync(request);
-
-if (response.IsSuccess)
-{
-    // Add assistant response to conversation
-    conversation.Add(new MessageRequest 
-    { 
-        Role = MessageRoles.Assistant, 
-        Content = response.Message 
-    });
-}
-```
-
-### Error Handling
-
-```csharp
-var response = await client.ChatCompletionAsync(request);
-
-if (!response.IsSuccess)
-{
-    switch (response.StatusCode)
-    {
-        case 401:
-            Console.WriteLine("Authentication failed. Check your API key.");
-            break;
-        case 429:
-            Console.WriteLine("Rate limit exceeded. Try again later.");
-            break;
-        default:
-            Console.WriteLine($"Error: {response.Message}");
-            break;
-    }
-}
-```
-
-### Cost Estimation
-
-```csharp
-if (response.Usage != null && response.Model != null)
-{
-    var cost = response.Usage.GetEstimatedCost(response.Model);
-    Console.WriteLine($"Estimated cost: ${cost:F6}");
-}
-```
-
-## 🧪 Testing
-
-The SDK includes a comprehensive test suite covering:
-- Basic functionality
-- Error handling
-- Validation
-- Multi-model testing
-- Conversation history
-- Cost estimation
-
-Run tests with:
 ```bash
-dotnet test
+dotnet add package MistralSDK
 ```
 
-## 📋 Requirements
+## Requirements
 
 - .NET 8.0 or later
 - Valid Mistral AI API key
 
-## 🔧 Configuration
+## Configuration
 
-The SDK uses built-in .NET libraries and requires no additional dependencies.
+Get your API key from [Mistral AI Console](https://console.mistral.ai/).
 
-## 🤝 Contributing
+## Testing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
+Run the test suite:
 
-## 📄 License
+```bash
+dotnet test
+```
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Documentation
 
-## 📞 Support
+For detailed documentation and examples, see the [CHANGELOG.md](CHANGELOG.md) file.
 
-- 📖 [CHANGELOG.md](CHANGELOG.md) - Detailed feature information and version history
-- 🔗 [Mistral AI API Documentation](https://docs.mistral.ai/)
-- 🐛 [GitHub Issues](https://github.com/yourusername/mistral-sdk-dotnet/issues)
+## Roadmap
 
-## 🎯 Roadmap
+- [ ] Support for embeddings API
+- [ ] Support for fine-tuning API
+- [ ] Streaming responses
+- [ ] Rate limiting and retry policies
+- [ ] Additional model support
 
-Future versions will include:
-- Streaming support
-- Function calling
-- Embeddings
-- Fine-tuning support
-- Rate limiting and retry logic
+## License
 
----
-
-**Version**: 1.0.0 | **Last Updated**: December 2024 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
