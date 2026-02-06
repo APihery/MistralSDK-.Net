@@ -124,6 +124,101 @@ else
 | `RandomSeed` | `int?` | null | Seed for reproducibility |
 | `Stream` | `bool` | false | Enable streaming response |
 
+## Multi-Turn Conversation (Chat with Context)
+
+The Mistral API maintains context through the message history you send. Here's an example of a complete conversation where the AI remembers previous exchanges:
+
+```csharp
+using MistralSDK;
+using MistralSDK.ChatCompletion;
+
+var apiKey = Environment.GetEnvironmentVariable("MISTRAL_API_KEY");
+using var client = new MistralClient(apiKey);
+
+// Initialize conversation with a system prompt
+var conversation = new List<MessageRequest>
+{
+    MessageRequest.System("You are a helpful cooking assistant. Be concise and friendly.")
+};
+
+// Helper method to chat and display response
+async Task<string> ChatAsync(string userMessage)
+{
+    // Add user message to history
+    conversation.Add(MessageRequest.User(userMessage));
+    
+    var request = new ChatCompletionRequest
+    {
+        Model = MistralModels.Small,
+        Messages = conversation,
+        Temperature = 0.7,
+        MaxTokens = 300
+    };
+    
+    var response = await client.ChatCompletionAsync(request);
+    
+    if (response.IsSuccess)
+    {
+        // Add assistant response to history (maintains context)
+        conversation.Add(MessageRequest.Assistant(response.Message));
+        return response.Message;
+    }
+    
+    return $"Error: {response.Message}";
+}
+
+// Simulate a conversation
+Console.WriteLine("🧑 User: I want to make pasta for dinner tonight.");
+Console.WriteLine($"🤖 Assistant: {await ChatAsync("I want to make pasta for dinner tonight.")}");
+Console.WriteLine();
+
+Console.WriteLine("🧑 User: What ingredients do I need for carbonara?");
+Console.WriteLine($"🤖 Assistant: {await ChatAsync("What ingredients do I need for carbonara?")}");
+Console.WriteLine();
+
+Console.WriteLine("🧑 User: I don't have guanciale, what can I use instead?");
+Console.WriteLine($"🤖 Assistant: {await ChatAsync("I don't have guanciale, what can I use instead?")}");
+Console.WriteLine();
+
+Console.WriteLine("🧑 User: Perfect! And how long should I cook the pasta?");
+Console.WriteLine($"🤖 Assistant: {await ChatAsync("Perfect! And how long should I cook the pasta?")}");
+```
+
+**Example output:**
+
+```
+🧑 User: I want to make pasta for dinner tonight.
+🤖 Assistant: Great choice! What type of pasta dish are you in the mood for? 
+   I can help with carbonara, bolognese, aglio e olio, or something else!
+
+🧑 User: What ingredients do I need for carbonara?
+🤖 Assistant: For a classic carbonara (serves 2), you'll need:
+   - 200g spaghetti or rigatoni
+   - 150g guanciale (cured pork cheek)
+   - 3 egg yolks + 1 whole egg
+   - 50g Pecorino Romano, finely grated
+   - Black pepper
+   - Salt for pasta water
+
+🧑 User: I don't have guanciale, what can I use instead?
+🤖 Assistant: No problem! You can substitute with:
+   1. **Pancetta** (best alternative) - similar flavor profile
+   2. **Thick-cut bacon** - more smoky, but works well
+   
+   Cut into small cubes and render the fat slowly for best results.
+
+🧑 User: Perfect! And how long should I cook the pasta?
+🤖 Assistant: Cook your spaghetti for about **1-2 minutes less** than the 
+   package says (usually 8-10 min for al dente). It will finish cooking 
+   in the pan with the sauce. Save some pasta water before draining!
+```
+
+**Key points:**
+- The `conversation` list maintains the full message history
+- Each exchange is added to the list (user message, then assistant response)
+- The AI remembers previous context (it knows you're making carbonara without guanciale)
+- Use `MessageRequest.System()`, `User()`, and `Assistant()` factory methods for cleaner code
+
 ## Next Steps
 
 - [Configuration Options](configuration.md) - Customize the client behavior
