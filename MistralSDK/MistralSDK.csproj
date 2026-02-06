@@ -8,75 +8,27 @@
     
     <!-- Project metadata -->
     <Title>Mistral AI SDK for .NET</Title>
-    <Description>A comprehensive .NET SDK for interacting with the Mistral AI API, providing easy-to-use methods for chat completions and other AI services. Features include full async support, comprehensive error handling, type safety, and built-in validation.</Description>
+    <Description>A comprehensive .NET SDK for interacting with the Mistral AI API.</Description>
     <Authors>Aymeric Pihery</Authors>
     <Company>Aymeric Pihery</Company>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>mistral;ai;chat;completion;api;sdk;dotnet;net8;async</PackageTags>
-    <PackageProjectUrl>https://github.com/APihery/MistralSDK-.Net/tree/main</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/APihery/MistralSDK-.Net/tree/main</RepositoryUrl>
+    <Copyright>Copyright 2025-2026</Copyright>
+    
+    <!-- Repository information -->
+    <RepositoryUrl>https://github.com/APihery/MistralSDK-.Net</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <RepositoryBranch>main</RepositoryBranch>
     
     <!-- Documentation settings -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
-    <NoWarn>$(NoWarn);1591</NoWarn> <!-- Suppress warnings for undocumented public members -->
+    <NoWarn>$(NoWarn);1591</NoWarn>
     
     <!-- Version information -->
     <Version>2.0.0</Version>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <FileVersion>2.0.0.0</FileVersion>
-    
-    <!-- Package metadata -->
-    <PackageId>MistralSDK</PackageId>
-    <PackageVersion>2.0.0</PackageVersion>
-    <PackageReleaseNotes>
-      ## Version 2.0.0 - Major Refactoring
-      
-      ### 🚀 Major Changes
-      - Interface-based design (IMistralClient) for better testability
-      - IHttpClientFactory support for proper HttpClient lifecycle management
-      - Custom exceptions (MistralApiException, MistralValidationException, etc.)
-      - Comprehensive MistralClientOptions for configuration
-      - Dependency Injection extensions for ASP.NET Core
-      - Optional response caching support
-      
-      ### ✨ New Features
-      - Client-side request validation before API calls
-      - Cancellation token support for all async methods
-      - Mock-based unit tests with Moq
-      - Code coverage with Coverlet
-      - Secure API key management via environment variables
-      
-      ### 🔒 Security
-      - API keys no longer hardcoded in tests
-      - Environment variable based configuration
-      - Explicit opt-in for integration tests
-      
-      ### 📚 Documentation
-      - Comprehensive README with DI examples
-      - Updated CHANGELOG
-      - Error handling patterns
-    </PackageReleaseNotes>
-    
-    <!-- Additional package properties -->
-    <Copyright>Copyright 2025-2026</Copyright>
-    <PackageIcon>Logo_MistralSDK.png</PackageIcon>
-    <PackageIconUrl>https://github.com/APihery/MistralSDK-.Net/tree/main/MistralSDK/Logo_MistralSDK.png</PackageIconUrl>
-    <PackageLicenseUrl>https://github.com/APihery/MistralSDK-.Net/blob/main/LICENSE</PackageLicenseUrl>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageCategory>AI/Machine Learning</PackageCategory>
-    <PackageLanguage>en-US</PackageLanguage>
-    <PackageServiceable>true</PackageServiceable>
-    <PackageDevelopmentDependency>false</PackageDevelopmentDependency>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- System.Text.Json is included in .NET 8.0 -->
-    <!-- System.ComponentModel.DataAnnotations is included in .NET 8.0 -->
-    
     <!-- HttpClientFactory for proper HttpClient lifecycle management -->
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
     <!-- Dependency injection support -->
@@ -85,13 +37,6 @@
     <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
     <!-- Memory cache for response caching -->
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\README.md" Pack="true" PackagePath="/" />
-    <None Include="..\CHANGELOG.md" Pack="true" PackagePath="/" />
-    <None Include="..\LICENSE" Pack="true" PackagePath="/" />
-    <None Include="..\Logo_MistralSDK.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>
