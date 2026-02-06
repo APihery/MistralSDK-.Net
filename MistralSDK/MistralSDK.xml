@@ -4,6 +4,161 @@
         <name>MistralSDK</name>
     </assembly>
     <members>
+        <member name="T:MistralSDK.Abstractions.IMistralClient">
+            <summary>
+            Defines the contract for a Mistral AI API client.
+            This interface enables dependency injection and unit testing with mocks.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.ChatCompletionAsync(MistralSDK.ChatCompletion.ChatCompletionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Sends a chat completion request to the Mistral AI API.
+            </summary>
+            <param name="request">The chat completion request containing the model, messages, and parameters.</param>
+            <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+            <returns>A <see cref="T:MistralSDK.MistralResponse"/> object containing the API response or error information.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the request is null.</exception>
+            <exception cref="T:MistralSDK.Exceptions.MistralApiException">Thrown when the API returns an error.</exception>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.ValidateRequest(MistralSDK.ChatCompletion.ChatCompletionRequest)">
+            <summary>
+            Validates a chat completion request without sending it to the API.
+            </summary>
+            <param name="request">The request to validate.</param>
+            <returns>A validation result indicating whether the request is valid.</returns>
+        </member>
+        <member name="T:MistralSDK.Abstractions.ValidationResult">
+            <summary>
+            Represents the result of a validation operation.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Abstractions.ValidationResult.IsValid">
+            <summary>
+            Gets a value indicating whether the validation passed.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Abstractions.ValidationResult.Errors">
+            <summary>
+            Gets the collection of validation errors, if any.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Abstractions.ValidationResult.#ctor(System.Boolean,System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MistralSDK.Abstractions.ValidationResult"/> class.
+            </summary>
+            <param name="isValid">Whether the validation passed.</param>
+            <param name="errors">The collection of validation errors.</param>
+        </member>
+        <member name="M:MistralSDK.Abstractions.ValidationResult.Success">
+            <summary>
+            Creates a successful validation result.
+            </summary>
+            <returns>A successful validation result.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.ValidationResult.Failure(System.String[])">
+            <summary>
+            Creates a failed validation result with the specified errors.
+            </summary>
+            <param name="errors">The validation errors.</param>
+            <returns>A failed validation result.</returns>
+        </member>
+        <member name="T:MistralSDK.Caching.IChatCompletionCache">
+            <summary>
+            Defines the contract for caching chat completion responses.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Caching.IChatCompletionCache.GetAsync(MistralSDK.ChatCompletion.ChatCompletionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Attempts to get a cached response for the given request.
+            </summary>
+            <param name="request">The chat completion request.</param>
+            <param name="cancellationToken">A cancellation token.</param>
+            <returns>The cached response, or null if not found.</returns>
+        </member>
+        <member name="M:MistralSDK.Caching.IChatCompletionCache.SetAsync(MistralSDK.ChatCompletion.ChatCompletionRequest,MistralSDK.MistralResponse,System.Threading.CancellationToken)">
+            <summary>
+            Stores a response in the cache.
+            </summary>
+            <param name="request">The chat completion request (used as the key).</param>
+            <param name="response">The response to cache.</param>
+            <param name="cancellationToken">A cancellation token.</param>
+        </member>
+        <member name="M:MistralSDK.Caching.IChatCompletionCache.Clear">
+            <summary>
+            Removes all cached entries.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Caching.MemoryChatCompletionCache">
+            <summary>
+            In-memory implementation of the chat completion cache.
+            Uses <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> for storage.
+            </summary>
+            <remarks>
+            <para>
+            This cache is useful for reducing API calls for identical requests.
+            It is particularly effective for:
+            - Repeated queries with the same parameters
+            - Development and testing scenarios
+            - Low-latency requirements where cache hits are acceptable
+            </para>
+            <para>
+            Note: Caching is only appropriate when the same input should produce
+            the same output. For creative or varied responses (high temperature),
+            caching may not be desirable.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:MistralSDK.Caching.MemoryChatCompletionCache.#ctor(MistralSDK.Configuration.MistralClientOptions)">
+            <summary>
+            Initializes a new instance with the specified options.
+            </summary>
+            <param name="options">The client options containing cache configuration.</param>
+        </member>
+        <member name="M:MistralSDK.Caching.MemoryChatCompletionCache.#ctor(Microsoft.Extensions.Options.IOptions{MistralSDK.Configuration.MistralClientOptions})">
+            <summary>
+            Initializes a new instance with the specified options (IOptions pattern).
+            </summary>
+            <param name="options">The client options wrapper.</param>
+        </member>
+        <member name="M:MistralSDK.Caching.MemoryChatCompletionCache.#ctor(Microsoft.Extensions.Caching.Memory.IMemoryCache,MistralSDK.Configuration.MistralClientOptions)">
+            <summary>
+            Initializes a new instance with an existing cache and options.
+            </summary>
+            <param name="cache">The memory cache to use.</param>
+            <param name="options">The client options containing cache configuration.</param>
+        </member>
+        <member name="M:MistralSDK.Caching.MemoryChatCompletionCache.#ctor(Microsoft.Extensions.Caching.Memory.IMemoryCache,Microsoft.Extensions.Options.IOptions{MistralSDK.Configuration.MistralClientOptions})">
+            <summary>
+            Initializes a new instance with an existing cache and options (IOptions pattern).
+            </summary>
+            <param name="cache">The memory cache to use.</param>
+            <param name="options">The client options wrapper.</param>
+        </member>
+        <member name="M:MistralSDK.Caching.MemoryChatCompletionCache.GetAsync(MistralSDK.ChatCompletion.ChatCompletionRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:MistralSDK.Caching.MemoryChatCompletionCache.SetAsync(MistralSDK.ChatCompletion.ChatCompletionRequest,MistralSDK.MistralResponse,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:MistralSDK.Caching.MemoryChatCompletionCache.Clear">
+            <inheritdoc />
+        </member>
+        <member name="M:MistralSDK.Caching.MemoryChatCompletionCache.GenerateCacheKey(MistralSDK.ChatCompletion.ChatCompletionRequest)">
+            <summary>
+            Generates a cache key based on the request parameters.
+            </summary>
+            <param name="request">The chat completion request.</param>
+            <returns>A unique cache key for the request.</returns>
+        </member>
+        <member name="M:MistralSDK.Caching.MemoryChatCompletionCache.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:MistralSDK.Caching.MemoryChatCompletionCache.Dispose(System.Boolean)">
+            <summary>
+            Releases the unmanaged resources and optionally releases the managed resources.
+            </summary>
+            <param name="disposing">True to release both managed and unmanaged resources.</param>
+        </member>
         <member name="T:MistralSDK.ChatCompletion.ChatCompletionErrorModelResponse">
             <summary>
             Represents a model-specific error response from the Mistral AI API.
@@ -627,9 +782,88 @@
             The model made a tool call.
             </summary>
         </member>
+        <member name="T:MistralSDK.Configuration.MistralClientOptions">
+            <summary>
+            Configuration options for the Mistral AI client.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.Configuration.MistralClientOptions.SectionName">
+            <summary>
+            The default configuration section name in appsettings.json.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Configuration.MistralClientOptions.ApiKey">
+            <summary>
+            Gets or sets the API key for authentication with Mistral AI.
+            This should be set via environment variables or secure configuration.
+            Never commit API keys to source control.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Configuration.MistralClientOptions.BaseUrl">
+            <summary>
+            Gets or sets the base URL for the Mistral AI API.
+            Default is "https://api.mistral.ai/v1".
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Configuration.MistralClientOptions.TimeoutSeconds">
+            <summary>
+            Gets or sets the timeout for HTTP requests in seconds.
+            Default is 30 seconds.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Configuration.MistralClientOptions.MaxRetries">
+            <summary>
+            Gets or sets the maximum number of retry attempts for transient failures.
+            Default is 3.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Configuration.MistralClientOptions.RetryDelayMilliseconds">
+            <summary>
+            Gets or sets the initial delay in milliseconds between retry attempts.
+            This value is used as the base for exponential backoff.
+            Default is 1000 milliseconds (1 second).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Configuration.MistralClientOptions.EnableCaching">
+            <summary>
+            Gets or sets whether to enable request/response caching.
+            Default is false.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Configuration.MistralClientOptions.CacheExpirationMinutes">
+            <summary>
+            Gets or sets the cache expiration time in minutes.
+            Only used when <see cref="P:MistralSDK.Configuration.MistralClientOptions.EnableCaching"/> is true.
+            Default is 5 minutes.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Configuration.MistralClientOptions.ThrowOnError">
+            <summary>
+            Gets or sets whether to throw exceptions on API errors.
+            When false, errors are returned in the response object.
+            Default is false for backward compatibility.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Configuration.MistralClientOptions.ValidateRequests">
+            <summary>
+            Gets or sets whether to validate requests before sending.
+            Default is true.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Configuration.MistralClientOptions.Validate">
+            <summary>
+            Validates the options and throws if invalid.
+            </summary>
+            <exception cref="T:System.ArgumentException">Thrown when the options are invalid.</exception>
+        </member>
         <member name="T:MistralSDK.Examples.SimpleExample">
             <summary>
             Simple example demonstrating basic usage of the Mistral SDK.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Examples.SimpleExample.GetApiKey">
+            <summary>
+            Gets the API key from environment variable.
             </summary>
         </member>
         <member name="M:MistralSDK.Examples.SimpleExample.RunBasicExample">
@@ -644,7 +878,7 @@
         </member>
         <member name="M:MistralSDK.Examples.SimpleExample.RunErrorHandlingExample">
             <summary>
-            Demonstrates error handling and validation.
+            Demonstrates error handling and validation with custom exceptions.
             </summary>
         </member>
         <member name="M:MistralSDK.Examples.SimpleExample.Main(System.String[])">
@@ -652,23 +886,281 @@
             Main method to run all examples.
             </summary>
         </member>
+        <member name="T:MistralSDK.Exceptions.MistralApiException">
+            <summary>
+            Represents an exception that occurs when interacting with the Mistral AI API.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Exceptions.MistralApiException.StatusCode">
+            <summary>
+            Gets the HTTP status code associated with this error.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Exceptions.MistralApiException.ErrorType">
+            <summary>
+            Gets the error type returned by the API.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Exceptions.MistralApiException.ErrorCode">
+            <summary>
+            Gets the error code returned by the API.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Exceptions.MistralApiException.IsRetryable">
+            <summary>
+            Gets a value indicating whether this error is retryable.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Exceptions.MistralApiException.RetryDelaySeconds">
+            <summary>
+            Gets the recommended retry delay in seconds, if applicable.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Exceptions.MistralApiException.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MistralSDK.Exceptions.MistralApiException"/> class.
+            </summary>
+            <param name="message">The error message.</param>
+        </member>
+        <member name="M:MistralSDK.Exceptions.MistralApiException.#ctor(System.String,System.Net.HttpStatusCode)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MistralSDK.Exceptions.MistralApiException"/> class.
+            </summary>
+            <param name="message">The error message.</param>
+            <param name="statusCode">The HTTP status code.</param>
+        </member>
+        <member name="M:MistralSDK.Exceptions.MistralApiException.#ctor(System.String,System.Net.HttpStatusCode,System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MistralSDK.Exceptions.MistralApiException"/> class.
+            </summary>
+            <param name="message">The error message.</param>
+            <param name="statusCode">The HTTP status code.</param>
+            <param name="errorType">The error type from the API.</param>
+            <param name="errorCode">The error code from the API.</param>
+        </member>
+        <member name="M:MistralSDK.Exceptions.MistralApiException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MistralSDK.Exceptions.MistralApiException"/> class.
+            </summary>
+            <param name="message">The error message.</param>
+            <param name="innerException">The inner exception.</param>
+        </member>
+        <member name="M:MistralSDK.Exceptions.MistralApiException.IsStatusCodeRetryable(System.Net.HttpStatusCode)">
+            <summary>
+            Determines if a status code indicates a retryable error.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Exceptions.MistralApiException.IsErrorTypeRetryable(System.String)">
+            <summary>
+            Determines if an error type indicates a retryable error.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Exceptions.MistralApiException.GetDefaultRetryDelay(System.Net.HttpStatusCode,System.String)">
+            <summary>
+            Gets the default retry delay based on status code and error type.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Exceptions.MistralValidationException">
+            <summary>
+            Exception thrown when request validation fails.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Exceptions.MistralValidationException.ValidationErrors">
+            <summary>
+            Gets the validation errors.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Exceptions.MistralValidationException.#ctor(System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MistralSDK.Exceptions.MistralValidationException"/> class.
+            </summary>
+            <param name="errors">The validation errors.</param>
+        </member>
+        <member name="M:MistralSDK.Exceptions.MistralValidationException.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MistralSDK.Exceptions.MistralValidationException"/> class.
+            </summary>
+            <param name="error">The validation error.</param>
+        </member>
+        <member name="T:MistralSDK.Exceptions.MistralAuthenticationException">
+            <summary>
+            Exception thrown when authentication fails.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Exceptions.MistralAuthenticationException.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MistralSDK.Exceptions.MistralAuthenticationException"/> class.
+            </summary>
+            <param name="message">The error message.</param>
+        </member>
+        <member name="T:MistralSDK.Exceptions.MistralRateLimitException">
+            <summary>
+            Exception thrown when the rate limit is exceeded.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Exceptions.MistralRateLimitException.#ctor(System.String,System.Nullable{System.Int32})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MistralSDK.Exceptions.MistralRateLimitException"/> class.
+            </summary>
+            <param name="message">The error message.</param>
+            <param name="retryAfterSeconds">The number of seconds to wait before retrying.</param>
+        </member>
+        <member name="T:MistralSDK.Exceptions.MistralModelNotFoundException">
+            <summary>
+            Exception thrown when the requested model is not found.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Exceptions.MistralModelNotFoundException.ModelId">
+            <summary>
+            Gets the model identifier that was not found.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Exceptions.MistralModelNotFoundException.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MistralSDK.Exceptions.MistralModelNotFoundException"/> class.
+            </summary>
+            <param name="modelId">The model identifier that was not found.</param>
+        </member>
+        <member name="T:MistralSDK.Extensions.ServiceCollectionExtensions">
+            <summary>
+            Extension methods for configuring MistralSDK services in the dependency injection container.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Extensions.ServiceCollectionExtensions.AddMistralClient(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{MistralSDK.Configuration.MistralClientOptions})">
+            <summary>
+            Adds the Mistral AI client to the service collection with the specified options.
+            </summary>
+            <param name="services">The service collection.</param>
+            <param name="configureOptions">An action to configure the client options.</param>
+            <returns>The service collection for chaining.</returns>
+            <example>
+            <code>
+            services.AddMistralClient(options =>
+            {
+                options.ApiKey = Environment.GetEnvironmentVariable("MISTRAL_API_KEY");
+                options.TimeoutSeconds = 60;
+                options.MaxRetries = 3;
+            });
+            </code>
+            </example>
+        </member>
+        <member name="M:MistralSDK.Extensions.ServiceCollectionExtensions.AddMistralClient(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfigurationSection)">
+            <summary>
+            Adds the Mistral AI client to the service collection with configuration from the specified section.
+            </summary>
+            <param name="services">The service collection.</param>
+            <param name="configuration">The configuration section containing MistralClientOptions.</param>
+            <returns>The service collection for chaining.</returns>
+            <example>
+            <code>
+            // In appsettings.json:
+            // {
+            //   "MistralApi": {
+            //     "ApiKey": "", // Set via environment variable or user secrets
+            //     "BaseUrl": "https://api.mistral.ai/v1",
+            //     "TimeoutSeconds": 30
+            //   }
+            // }
+            
+            services.AddMistralClient(Configuration.GetSection("MistralApi"));
+            </code>
+            </example>
+        </member>
+        <member name="M:MistralSDK.Extensions.ServiceCollectionExtensions.AddMistralClientFromEnvironment(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String)">
+            <summary>
+            Adds the Mistral AI client to the service collection with API key from environment variable.
+            </summary>
+            <param name="services">The service collection.</param>
+            <param name="environmentVariableName">The name of the environment variable containing the API key. Default is "MISTRAL_API_KEY".</param>
+            <returns>The service collection for chaining.</returns>
+            <exception cref="T:System.InvalidOperationException">Thrown when the environment variable is not set.</exception>
+            <example>
+            <code>
+            // Uses MISTRAL_API_KEY environment variable by default
+            services.AddMistralClientFromEnvironment();
+            
+            // Or specify a custom environment variable name
+            services.AddMistralClientFromEnvironment("MY_MISTRAL_KEY");
+            </code>
+            </example>
+        </member>
         <member name="T:MistralSDK.MistralClient">
             <summary>
             Client for interacting with the Mistral AI API.
             Provides methods to send chat completion requests and handle responses.
             </summary>
+            <remarks>
+            <para>
+            For production use, it is recommended to use <see cref="T:System.Net.Http.IHttpClientFactory"/> to manage
+            the lifecycle of HttpClient instances. This prevents socket exhaustion issues.
+            </para>
+            <para>
+            Use the <see cref="T:MistralSDK.Configuration.MistralClientOptions"/> class to configure the client behavior,
+            including timeouts, retries, and caching.
+            </para>
+            </remarks>
         </member>
-        <member name="F:MistralSDK.MistralClient.BaseUrl">
+        <member name="F:MistralSDK.MistralClient.DefaultBaseUrl">
             <summary>
-            The base URL for the Mistral AI API.
+            The default base URL for the Mistral AI API.
             </summary>
         </member>
         <member name="M:MistralSDK.MistralClient.#ctor(System.String)">
             <summary>
-            Initializes a new instance of the <see cref="T:MistralSDK.MistralClient"/> class.
+            Initializes a new instance of the <see cref="T:MistralSDK.MistralClient"/> class with an API key.
             </summary>
             <param name="apiKey">The API key for authentication with Mistral AI.</param>
             <exception cref="T:System.ArgumentException">Thrown when the API key is null, empty, or whitespace.</exception>
+            <remarks>
+            This constructor creates its own HttpClient instance. For better resource management
+            in production applications, consider using the constructor that accepts an HttpClient
+            from IHttpClientFactory.
+            </remarks>
+        </member>
+        <member name="M:MistralSDK.MistralClient.#ctor(MistralSDK.Configuration.MistralClientOptions)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MistralSDK.MistralClient"/> class with options.
+            </summary>
+            <param name="options">The configuration options for the client.</param>
+            <exception cref="T:System.ArgumentNullException">Thrown when options is null.</exception>
+            <exception cref="T:System.ArgumentException">Thrown when the options are invalid.</exception>
+        </member>
+        <member name="M:MistralSDK.MistralClient.#ctor(Microsoft.Extensions.Options.IOptions{MistralSDK.Configuration.MistralClientOptions})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MistralSDK.MistralClient"/> class with options (IOptions pattern).
+            </summary>
+            <param name="options">The configuration options wrapper.</param>
+        </member>
+        <member name="M:MistralSDK.MistralClient.#ctor(System.Net.Http.HttpClient,MistralSDK.Configuration.MistralClientOptions)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MistralSDK.MistralClient"/> class with a pre-configured HttpClient.
+            </summary>
+            <param name="httpClient">The HttpClient instance to use (typically from IHttpClientFactory).</param>
+            <param name="options">The configuration options for the client.</param>
+            <exception cref="T:System.ArgumentNullException">Thrown when httpClient or options is null.</exception>
+            <remarks>
+            Use this constructor with IHttpClientFactory for production applications.
+            The HttpClient should be configured with the appropriate base address and authorization header.
+            </remarks>
+        </member>
+        <member name="M:MistralSDK.MistralClient.#ctor(System.Net.Http.HttpClient,Microsoft.Extensions.Options.IOptions{MistralSDK.Configuration.MistralClientOptions})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MistralSDK.MistralClient"/> class with a pre-configured HttpClient (IOptions pattern).
+            </summary>
+            <param name="httpClient">The HttpClient instance to use.</param>
+            <param name="options">The configuration options wrapper.</param>
+        </member>
+        <member name="M:MistralSDK.MistralClient.CreateJsonOptions">
+            <summary>
+            Creates the JSON serializer options used for API communication.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.MistralClient.ValidateRequest(MistralSDK.ChatCompletion.ChatCompletionRequest)">
+            <summary>
+            Validates a chat completion request without sending it to the API.
+            </summary>
+            <param name="request">The request to validate.</param>
+            <returns>A validation result indicating whether the request is valid.</returns>
         </member>
         <member name="M:MistralSDK.MistralClient.ChatCompletionAsync(MistralSDK.ChatCompletion.ChatCompletionRequest)">
             <summary>
@@ -677,7 +1169,18 @@
             <param name="request">The chat completion request containing the model, messages, and parameters.</param>
             <returns>A <see cref="T:MistralSDK.MistralResponse"/> object containing the API response or error information.</returns>
             <exception cref="T:System.ArgumentNullException">Thrown when the request is null.</exception>
-            <exception cref="T:System.Net.Http.HttpRequestException">Thrown when the HTTP request fails.</exception>
+            <exception cref="T:MistralSDK.Exceptions.MistralApiException">Thrown when the API returns an error (if ThrowOnError is enabled).</exception>
+        </member>
+        <member name="M:MistralSDK.MistralClient.ChatCompletionAsync(MistralSDK.ChatCompletion.ChatCompletionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Sends a chat completion request to the Mistral AI API.
+            </summary>
+            <param name="request">The chat completion request containing the model, messages, and parameters.</param>
+            <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+            <returns>A <see cref="T:MistralSDK.MistralResponse"/> object containing the API response or error information.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the request is null.</exception>
+            <exception cref="T:MistralSDK.Exceptions.MistralValidationException">Thrown when request validation fails (if ValidateRequests is enabled).</exception>
+            <exception cref="T:MistralSDK.Exceptions.MistralApiException">Thrown when the API returns an error (if ThrowOnError is enabled).</exception>
         </member>
         <member name="M:MistralSDK.MistralClient.ParseResponse(System.Int32,System.String)">
             <summary>

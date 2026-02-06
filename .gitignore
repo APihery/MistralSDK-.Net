@@ -452,6 +452,14 @@ secrets.json
 *.key
 *.pem
 
+# Mistral SDK API Key file - NEVER COMMIT THIS FILE
+api-key.txt
+api-key.*.txt
+mistral-api-key.txt
+
+# Test configuration with secrets
+appsettings.test.json
+
 # Test Results
 TestResults/
 *.trx

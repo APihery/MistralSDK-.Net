@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,7 +33,7 @@ namespace MistralSDK.ChatCompletion
         /// <returns>A string containing all error messages separated by semicolons.</returns>
         public string GetAllErrorMessages()
         {
-            if (Detail?.Count == 0) return "Unknown error";
+            if (Detail == null || Detail.Count == 0) return "Unknown error";
             
             return string.Join("; ", Detail.Select(d => d.Msg ?? "Unknown error"));
         }

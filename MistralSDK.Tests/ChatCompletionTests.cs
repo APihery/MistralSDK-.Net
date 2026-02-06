@@ -1,21 +1,22 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MistralSDK;
 using MistralSDK.ChatCompletion;
+using MistralSDK.Configuration;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace MistralSDK.Tests
 {
     /// <summary>
-    /// Unit tests for the MistralClient class.
-    /// Tests various scenarios including successful requests, error handling, and validation.
+    /// Integration tests for the MistralClient class.
+    /// These tests make real API calls and require a valid API key.
+    /// Set the MISTRAL_API_KEY environment variable and MISTRAL_ENABLE_INTEGRATION_TESTS=true to run.
     /// </summary>
     [TestClass]
     public class ChatCompletionTests
     {
-        private MistralClient _client;
-        private string _apiKey;
-        public TestContext TestContext { get; set; }
+        private MistralClient? _client;
+        public TestContext TestContext { get; set; } = null!;
 
         /// <summary>
         /// Initializes the test environment before each test method.
@@ -23,17 +24,54 @@ namespace MistralSDK.Tests
         [TestInitialize]
         public void TestInitialize()
         {
-            // Initialize the client with a valid API key
-            _apiKey = "[YOUR_API_KEY]";
-            _client = new MistralClient(_apiKey);
+            // Skip initialization if integration tests are not enabled
+            if (!TestConfiguration.IsIntegrationTestEnabled())
+            {
+                return;
+            }
+
+            // Initialize the client with API key from environment variable
+            var options = new MistralClientOptions
+            {
+                ApiKey = TestConfiguration.GetApiKeyOrThrow(),
+                TimeoutSeconds = 60,
+                ValidateRequests = true
+            };
+            _client = new MistralClient(options);
+        }
+
+        [TestCleanup]
+        public void TestCleanup()
+        {
+            _client?.Dispose();
+        }
+
+        /// <summary>
+        /// Helper method to skip tests when integration tests are not enabled.
+        /// Also ensures _client is properly initialized.
+        /// </summary>
+        private void SkipIfIntegrationTestsDisabled()
+        {
+            if (!TestConfiguration.IsIntegrationTestEnabled())
+            {
+                Assert.Inconclusive(
+                    "Integration tests are disabled. " +
+                    "Set MISTRAL_API_KEY and MISTRAL_ENABLE_INTEGRATION_TESTS=true to enable.");
+            }
+
+            // Ensure client is initialized (should always be true if integration tests are enabled)
+            Assert.IsNotNull(_client, "Client should be initialized when integration tests are enabled.");
         }
 
         /// <summary>
         /// Tests a successful chat completion request with valid parameters.
         /// </summary>
         [TestMethod]
+        [TestCategory("Integration")]
         public async Task ChatCompletion_ValidResponse_ShouldSucceed()
         {
+            SkipIfIntegrationTestsDisabled();
+
             // Arrange
             var messages = new List<MessageRequest>
             {
@@ -53,7 +91,7 @@ namespace MistralSDK.Tests
             };
 
             // Act
-            var response = await _client.ChatCompletionAsync(request);
+            var response = await _client!.ChatCompletionAsync(request);
 
             // Assert
             Assert.IsNotNull(response);
@@ -74,8 +112,11 @@ namespace MistralSDK.Tests
         /// Tests a conversation with multiple messages including follow-up questions.
         /// </summary>
         [TestMethod]
+        [TestCategory("Integration")]
         public async Task ChatHistoryCompletion_ValidResponse_ShouldSucceed()
         {
+            SkipIfIntegrationTestsDisabled();
+
             // Arrange
             var messages = new List<MessageRequest>
             {
@@ -95,7 +136,7 @@ namespace MistralSDK.Tests
             };
 
             // Act - First request
-            var response = await _client.ChatCompletionAsync(request);
+            var response = await _client!.ChatCompletionAsync(request);
 
             // Assert - First response
             Assert.IsNotNull(response);
@@ -127,7 +168,7 @@ namespace MistralSDK.Tests
             request.Messages = messages;
 
             // Act - Second request
-            response = await _client.ChatCompletionAsync(request);
+            response = await _client!.ChatCompletionAsync(request);
 
             // Assert - Second response
             Assert.IsNotNull(response);
@@ -146,8 +187,11 @@ namespace MistralSDK.Tests
         /// Tests error handling when an invalid role is provided.
         /// </summary>
         [TestMethod]
+        [TestCategory("Integration")]
         public async Task ChatCompletion_ErrorRole_ShouldReturnError()
         {
+            SkipIfIntegrationTestsDisabled();
+
             // Arrange
             var messages = new List<MessageRequest>
             {
@@ -166,13 +210,15 @@ namespace MistralSDK.Tests
             };
 
             // Act
-            var response = await _client.ChatCompletionAsync(request);
+            var response = await _client!.ChatCompletionAsync(request);
 
             // Assert
             Assert.IsNotNull(response);
             Assert.IsFalse(response.IsSuccess, "Response should indicate failure");
             Assert.IsNotNull(response.Message);
-            Assert.AreEqual(422, response.StatusCode, "Should return 422 for validation error");
+            // Client-side validation returns 400, API may return 400 or 422
+            Assert.IsTrue(response.StatusCode == 400 || response.StatusCode == 422, 
+                $"Should return 400 or 422 for validation error, got {response.StatusCode}");
 
             // Log error information
             TestContext.WriteLine($"Status Code: {response.StatusCode}");
@@ -183,8 +229,11 @@ namespace MistralSDK.Tests
         /// Tests error handling when an invalid model is provided.
         /// </summary>
         [TestMethod]
+        [TestCategory("Integration")]
         public async Task ChatCompletion_ErrorModel_ShouldReturnError()
         {
+            SkipIfIntegrationTestsDisabled();
+
             // Arrange
             var messages = new List<MessageRequest>
             {
@@ -203,7 +252,7 @@ namespace MistralSDK.Tests
             };
 
             // Act
-            var response = await _client.ChatCompletionAsync(request);
+            var response = await _client!.ChatCompletionAsync(request);
 
             // Assert
             Assert.IsNotNull(response);
@@ -220,6 +269,7 @@ namespace MistralSDK.Tests
         /// Tests request validation with invalid parameters.
         /// </summary>
         [TestMethod]
+        [TestCategory("Unit")]
         public void ChatCompletionRequest_InvalidParameters_ShouldFailValidation()
         {
             // Arrange
@@ -238,6 +288,7 @@ namespace MistralSDK.Tests
         /// Tests request validation with valid parameters.
         /// </summary>
         [TestMethod]
+        [TestCategory("Unit")]
         public void ChatCompletionRequest_ValidParameters_ShouldPassValidation()
         {
             // Arrange
@@ -264,6 +315,7 @@ namespace MistralSDK.Tests
         /// Tests message validation with invalid role.
         /// </summary>
         [TestMethod]
+        [TestCategory("Unit")]
         public void MessageRequest_InvalidRole_ShouldFailValidation()
         {
             // Arrange
@@ -281,6 +333,7 @@ namespace MistralSDK.Tests
         /// Tests message validation with valid parameters.
         /// </summary>
         [TestMethod]
+        [TestCategory("Unit")]
         public void MessageRequest_ValidParameters_ShouldPassValidation()
         {
             // Arrange
@@ -298,8 +351,11 @@ namespace MistralSDK.Tests
         /// Tests different model types to ensure they work correctly.
         /// </summary>
         [TestMethod]
+        [TestCategory("Integration")]
         public async Task ChatCompletion_DifferentModels_ShouldWork()
         {
+            SkipIfIntegrationTestsDisabled();
+
             // Test with different models
             var models = new[] { MistralModels.Tiny, MistralModels.Small, MistralModels.Medium };
 
@@ -322,7 +378,7 @@ namespace MistralSDK.Tests
                 };
 
                 // Act
-                var response = await _client.ChatCompletionAsync(request);
+                var response = await _client!.ChatCompletionAsync(request);
 
                 // Assert
                 Assert.IsNotNull(response);
@@ -338,8 +394,11 @@ namespace MistralSDK.Tests
         /// Tests the cost estimation functionality.
         /// </summary>
         [TestMethod]
+        [TestCategory("Integration")]
         public async Task ChatCompletion_CostEstimation_ShouldWork()
         {
+            SkipIfIntegrationTestsDisabled();
+
             // Arrange
             var request = new ChatCompletionRequest
             {
@@ -357,7 +416,7 @@ namespace MistralSDK.Tests
             };
 
             // Act
-            var response = await _client.ChatCompletionAsync(request);
+            var response = await _client!.ChatCompletionAsync(request);
 
             // Assert
             Assert.IsNotNull(response);
@@ -376,17 +435,19 @@ namespace MistralSDK.Tests
         /// Tests error handling with null API key.
         /// </summary>
         [TestMethod]
+        [TestCategory("Unit")]
         [ExpectedException(typeof(ArgumentException))]
         public void MistralClient_NullApiKey_ShouldThrowException()
         {
             // Act & Assert
-            _ = new MistralClient(null);
+            _ = new MistralClient((string)null!);
         }
 
         /// <summary>
         /// Tests error handling with empty API key.
         /// </summary>
         [TestMethod]
+        [TestCategory("Unit")]
         [ExpectedException(typeof(ArgumentException))]
         public void MistralClient_EmptyApiKey_ShouldThrowException()
         {
@@ -398,6 +459,7 @@ namespace MistralSDK.Tests
         /// Tests error handling with whitespace API key.
         /// </summary>
         [TestMethod]
+        [TestCategory("Unit")]
         [ExpectedException(typeof(ArgumentException))]
         public void MistralClient_WhitespaceApiKey_ShouldThrowException()
         {
@@ -409,19 +471,26 @@ namespace MistralSDK.Tests
         /// Tests error handling with null request.
         /// </summary>
         [TestMethod]
+        [TestCategory("Unit")]
         [ExpectedException(typeof(ArgumentNullException))]
         public async Task ChatCompletion_NullRequest_ShouldThrowException()
         {
+            // Arrange - Create a client for this test
+            using var client = new MistralClient(TestConfiguration.GetTestApiKey());
+            
             // Act & Assert
-            await _client.ChatCompletionAsync(null);
+            await client.ChatCompletionAsync(null!);
         }
 
         /// <summary>
         /// Tests the usage of different message roles.
         /// </summary>
         [TestMethod]
+        [TestCategory("Integration")]
         public async Task ChatCompletion_DifferentRoles_ShouldWork()
         {
+            SkipIfIntegrationTestsDisabled();
+
             // Arrange
             var request = new ChatCompletionRequest
             {
@@ -444,7 +513,7 @@ namespace MistralSDK.Tests
             };
 
             // Act
-            var response = await _client.ChatCompletionAsync(request);
+            var response = await _client!.ChatCompletionAsync(request);
 
             // Assert
             Assert.IsNotNull(response);
@@ -458,8 +527,11 @@ namespace MistralSDK.Tests
         /// Tests the response properties for successful requests.
         /// </summary>
         [TestMethod]
+        [TestCategory("Integration")]
         public async Task ChatCompletion_SuccessfulResponse_ShouldHaveCorrectProperties()
         {
+            SkipIfIntegrationTestsDisabled();
+
             // Arrange
             var request = new ChatCompletionRequest
             {
@@ -476,7 +548,7 @@ namespace MistralSDK.Tests
             };
 
             // Act
-            var response = await _client.ChatCompletionAsync(request);
+            var response = await _client!.ChatCompletionAsync(request);
 
             // Assert
             Assert.IsNotNull(response);
@@ -499,8 +571,11 @@ namespace MistralSDK.Tests
         /// This test simulates a real conversation with multiple exchanges.
         /// </summary>
         [TestMethod]
+        [TestCategory("Integration")]
         public async Task ChatCompletion_MessageHistory_ShouldMaintainContext()
         {
+            SkipIfIntegrationTestsDisabled();
+
             // Arrange - Start with a system message to set context
             var conversation = new List<MessageRequest>
             {
@@ -527,7 +602,7 @@ namespace MistralSDK.Tests
             };
 
             // Act - First response
-            var response = await _client.ChatCompletionAsync(request);
+            var response = await _client!.ChatCompletionAsync(request);
 
             // Assert - First response
             Assert.IsNotNull(response);
@@ -559,7 +634,7 @@ namespace MistralSDK.Tests
             request.Messages = conversation;
 
             // Act - Second response
-            response = await _client.ChatCompletionAsync(request);
+            response = await _client!.ChatCompletionAsync(request);
 
             // Assert - Second response
             Assert.IsNotNull(response);
@@ -591,7 +666,7 @@ namespace MistralSDK.Tests
             request.Messages = conversation;
 
             // Act - Third response
-            response = await _client.ChatCompletionAsync(request);
+            response = await _client!.ChatCompletionAsync(request);
 
             // Assert - Third response
             Assert.IsNotNull(response);
@@ -623,7 +698,7 @@ namespace MistralSDK.Tests
             request.Messages = conversation;
 
             // Act - Fourth response (summary)
-            response = await _client.ChatCompletionAsync(request);
+            response = await _client!.ChatCompletionAsync(request);
 
             // Assert - Fourth response
             Assert.IsNotNull(response);

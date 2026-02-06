@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -25,42 +25,44 @@
     <NoWarn>$(NoWarn);1591</NoWarn> <!-- Suppress warnings for undocumented public members -->
     
     <!-- Version information -->
-    <Version>1.0.0</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
+    <Version>2.0.0</Version>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
     
     <!-- Package metadata -->
     <PackageId>MistralSDK</PackageId>
-    <PackageVersion>1.0.0</PackageVersion>
+    <PackageVersion>2.0.0</PackageVersion>
     <PackageReleaseNotes>
-      ## Version 1.0.0 - Initial Release
+      ## Version 2.0.0 - Major Refactoring
       
-      ### ✨ Features
-      - Full support for Mistral AI chat completion API
-      - Support for all Mistral models (Tiny, Small, Medium, Large)
-      - Comprehensive error handling and validation
-      - Type-safe request and response objects
-      - Full async/await support
-      - Resource management with IDisposable
-      - Built-in cost estimation
-      - XML documentation for all public APIs
+      ### 🚀 Major Changes
+      - Interface-based design (IMistralClient) for better testability
+      - IHttpClientFactory support for proper HttpClient lifecycle management
+      - Custom exceptions (MistralApiException, MistralValidationException, etc.)
+      - Comprehensive MistralClientOptions for configuration
+      - Dependency Injection extensions for ASP.NET Core
+      - Optional response caching support
       
-      ### 🔧 Technical Features
-      - .NET 8.0 support
-      - Nullable reference types
-      - Data annotations for validation
-      - JSON serialization optimization
-      - Comprehensive test suite
+      ### ✨ New Features
+      - Client-side request validation before API calls
+      - Cancellation token support for all async methods
+      - Mock-based unit tests with Moq
+      - Code coverage with Coverlet
+      - Secure API key management via environment variables
+      
+      ### 🔒 Security
+      - API keys no longer hardcoded in tests
+      - Environment variable based configuration
+      - Explicit opt-in for integration tests
       
       ### 📚 Documentation
-      - Complete API reference
-      - Usage examples and best practices
-      - Error handling guide
-      - Cost estimation examples
+      - Comprehensive README with DI examples
+      - Updated CHANGELOG
+      - Error handling patterns
     </PackageReleaseNotes>
     
     <!-- Additional package properties -->
-    <Copyright>Copyright 2025</Copyright>
+    <Copyright>Copyright 2025-2026</Copyright>
     <PackageIcon>Logo_MistralSDK.png</PackageIcon>
     <PackageIconUrl>https://github.com/APihery/MistralSDK-.Net/tree/main/MistralSDK/Logo_MistralSDK.png</PackageIconUrl>
     <PackageLicenseUrl>https://github.com/APihery/MistralSDK-.Net/blob/main/LICENSE</PackageLicenseUrl>
@@ -74,6 +76,15 @@
   <ItemGroup>
     <!-- System.Text.Json is included in .NET 8.0 -->
     <!-- System.ComponentModel.DataAnnotations is included in .NET 8.0 -->
+    
+    <!-- HttpClientFactory for proper HttpClient lifecycle management -->
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+    <!-- Dependency injection support -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
+    <!-- Options pattern for configuration -->
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+    <!-- Memory cache for response caching -->
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
   </ItemGroup>
 
   <ItemGroup>

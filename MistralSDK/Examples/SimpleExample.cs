@@ -1,5 +1,7 @@
 using MistralSDK;
 using MistralSDK.ChatCompletion;
+using MistralSDK.Configuration;
+using MistralSDK.Exceptions;
 
 namespace MistralSDK.Examples
 {
@@ -9,14 +11,38 @@ namespace MistralSDK.Examples
     public class SimpleExample
     {
         /// <summary>
+        /// Gets the API key from environment variable.
+        /// </summary>
+        private static string GetApiKey()
+        {
+            var apiKey = Environment.GetEnvironmentVariable("MISTRAL_API_KEY");
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                throw new InvalidOperationException(
+                    "Please set the MISTRAL_API_KEY environment variable. " +
+                    "Get your API key from https://console.mistral.ai/");
+            }
+            return apiKey;
+        }
+
+        /// <summary>
         /// Demonstrates a basic chat completion request.
         /// </summary>
         public static async Task RunBasicExample()
         {
             Console.WriteLine("=== Mistral SDK Basic Example ===\n");
 
-            // Replace with your actual API key
-            const string apiKey = "your-api-key-here";
+            // Get API key from environment variable (secure)
+            string apiKey;
+            try
+            {
+                apiKey = GetApiKey();
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"❌ {ex.Message}");
+                return;
+            }
 
             try
             {
@@ -80,8 +106,17 @@ namespace MistralSDK.Examples
         {
             Console.WriteLine("\n=== Mistral SDK Conversation Example ===\n");
 
-            // Replace with your actual API key
-            const string apiKey = "your-api-key-here";
+            // Get API key from environment variable (secure)
+            string apiKey;
+            try
+            {
+                apiKey = GetApiKey();
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"❌ {ex.Message}");
+                return;
+            }
 
             try
             {
@@ -168,16 +203,17 @@ namespace MistralSDK.Examples
         }
 
         /// <summary>
-        /// Demonstrates error handling and validation.
+        /// Demonstrates error handling and validation with custom exceptions.
         /// </summary>
         public static async Task RunErrorHandlingExample()
         {
             Console.WriteLine("\n=== Mistral SDK Error Handling Example ===\n");
 
+            // Example 1: Using response objects (default behavior)
+            Console.WriteLine("1. Testing with invalid API key (response object)...");
             try
             {
-                // This will throw an exception due to invalid API key
-                using var client = new MistralClient("invalid-api-key");
+                using var client = new MistralClient("invalid-api-key-test");
 
                 var request = new ChatCompletionRequest
                 {
@@ -192,38 +228,89 @@ namespace MistralSDK.Examples
                     }
                 };
 
-                Console.WriteLine("Testing with invalid API key...");
                 var response = await client.ChatCompletionAsync(request);
 
                 if (!response.IsSuccess)
                 {
-                    Console.WriteLine($"❌ Expected error occurred:");
-                    Console.WriteLine($"Status code: {response.StatusCode}");
-                    Console.WriteLine($"Error message: {response.Message}");
+                    Console.WriteLine($"   ❌ Expected error occurred:");
+                    Console.WriteLine($"   Status code: {response.StatusCode}");
+                    Console.WriteLine($"   Error message: {response.Message}");
                 }
-            }
-            catch (ArgumentException ex)
-            {
-                Console.WriteLine($"❌ Validation error: {ex.Message}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Unexpected error: {ex.Message}");
+                Console.WriteLine($"   ❌ Exception: {ex.Message}");
             }
 
-            // Test request validation
-            Console.WriteLine("\nTesting request validation...");
-            var invalidRequest = new ChatCompletionRequest
+            // Example 2: Using exception handling (ThrowOnError = true)
+            Console.WriteLine("\n2. Testing with ThrowOnError enabled...");
+            try
             {
-                Model = "", // Invalid: empty model
-                Messages = new List<MessageRequest>(), // Invalid: empty messages
-                Temperature = 3.0 // Invalid: temperature > 2.0
-            };
+                var options = new MistralClientOptions
+                {
+                    ApiKey = "invalid-api-key-test",
+                    ThrowOnError = true
+                };
+                using var client = new MistralClient(options);
 
-            if (!invalidRequest.IsValid())
-            {
-                Console.WriteLine("❌ Request validation correctly identified invalid parameters");
+                var request = new ChatCompletionRequest
+                {
+                    Model = MistralModels.Small,
+                    Messages = new List<MessageRequest>
+                    {
+                        new MessageRequest
+                        {
+                            Role = MessageRoles.User,
+                            Content = "Hello"
+                        }
+                    }
+                };
+
+                await client.ChatCompletionAsync(request);
             }
+            catch (MistralValidationException ex)
+            {
+                Console.WriteLine($"   ❌ Validation error: {string.Join(", ", ex.ValidationErrors)}");
+            }
+            catch (MistralAuthenticationException ex)
+            {
+                Console.WriteLine($"   ❌ Authentication error: {ex.Message}");
+            }
+            catch (MistralRateLimitException ex)
+            {
+                Console.WriteLine($"   ❌ Rate limit error: {ex.Message}");
+                Console.WriteLine($"   Retry after: {ex.RetryDelaySeconds} seconds");
+            }
+            catch (MistralApiException ex)
+            {
+                Console.WriteLine($"   ❌ API error: {ex.Message}");
+                Console.WriteLine($"   Status code: {(int)ex.StatusCode}");
+                Console.WriteLine($"   Is retryable: {ex.IsRetryable}");
+            }
+
+            // Example 3: Client-side validation
+            Console.WriteLine("\n3. Testing client-side request validation...");
+            using (var client = new MistralClient("test-key"))
+            {
+                var invalidRequest = new ChatCompletionRequest
+                {
+                    Model = "", // Invalid: empty model
+                    Messages = new List<MessageRequest>(), // Invalid: empty messages
+                    Temperature = 3.0 // Invalid: temperature > 2.0
+                };
+
+                var validationResult = client.ValidateRequest(invalidRequest);
+                if (!validationResult.IsValid)
+                {
+                    Console.WriteLine("   ❌ Request validation correctly identified invalid parameters:");
+                    foreach (var error in validationResult.Errors)
+                    {
+                        Console.WriteLine($"      - {error}");
+                    }
+                }
+            }
+
+            Console.WriteLine("\n✅ Error handling examples completed.");
         }
 
         /// <summary>
