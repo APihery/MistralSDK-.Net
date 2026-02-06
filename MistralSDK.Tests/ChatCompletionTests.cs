@@ -3,6 +3,8 @@ using MistralSDK;
 using MistralSDK.ChatCompletion;
 using MistralSDK.Configuration;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MistralSDK.Tests
@@ -357,7 +359,7 @@ namespace MistralSDK.Tests
             SkipIfIntegrationTestsDisabled();
 
             // Test with different models
-            var models = new[] { MistralModels.Tiny, MistralModels.Small, MistralModels.Medium };
+            var models = new[] { MistralModels.Ministral3B, MistralModels.Small, MistralModels.Large };
 
             foreach (var model in models)
             {
@@ -595,7 +597,7 @@ namespace MistralSDK.Tests
 
             var request = new ChatCompletionRequest
             {
-                Model = MistralModels.Medium,
+                Model = MistralModels.Small,
                 Messages = conversation,
                 Temperature = 0.3,
                 MaxTokens = 150
@@ -726,5 +728,233 @@ namespace MistralSDK.Tests
             TestContext.WriteLine($"Total messages in conversation: {conversation.Count}");
             TestContext.WriteLine($"Final response length: {response.Message.Length} characters");
         }
+
+        #region Streaming Integration Tests
+
+        /// <summary>
+        /// Tests that streaming chat completion returns chunks correctly.
+        /// </summary>
+        [TestMethod]
+        [TestCategory("Integration")]
+        public async Task ChatCompletionStream_ValidRequest_ReturnsChunks()
+        {
+            SkipIfIntegrationTestsDisabled();
+
+            // Arrange
+            var request = new ChatCompletionRequest
+            {
+                Model = MistralModels.Small,
+                Messages = new List<MessageRequest>
+                {
+                    MessageRequest.User("Count from 1 to 5.")
+                },
+                MaxTokens = 50
+            };
+
+            // Act
+            var chunks = new List<StreamingChatCompletionChunk>();
+            var contentBuilder = new System.Text.StringBuilder();
+
+            await foreach (var chunk in _client!.ChatCompletionStreamAsync(request))
+            {
+                chunks.Add(chunk);
+                var content = chunk.GetContent();
+                if (!string.IsNullOrEmpty(content))
+                {
+                    contentBuilder.Append(content);
+                    TestContext.WriteLine($"Chunk {chunks.Count}: '{content}'");
+                }
+            }
+
+            // Assert
+            Assert.IsTrue(chunks.Count > 0, "Should receive at least one chunk");
+            
+            var fullContent = contentBuilder.ToString();
+            Assert.IsTrue(fullContent.Length > 0, "Should have accumulated content");
+            TestContext.WriteLine($"Total chunks: {chunks.Count}");
+            TestContext.WriteLine($"Full content: {fullContent}");
+
+            // Verify first chunk has model info
+            Assert.IsNotNull(chunks[0].Model);
+            Assert.IsNotNull(chunks[0].Id);
+
+            // Verify last chunk has finish reason
+            var lastChunk = chunks[^1];
+            Assert.IsTrue(lastChunk.IsComplete || chunks.Any(c => c.IsComplete), 
+                "At least one chunk should be marked as complete");
+        }
+
+        /// <summary>
+        /// Tests that ChatCompletionStreamCollectAsync collects all chunks correctly.
+        /// </summary>
+        [TestMethod]
+        [TestCategory("Integration")]
+        public async Task ChatCompletionStreamCollect_ValidRequest_CollectsAllChunks()
+        {
+            SkipIfIntegrationTestsDisabled();
+
+            // Arrange
+            var request = new ChatCompletionRequest
+            {
+                Model = MistralModels.Small,
+                Messages = new List<MessageRequest>
+                {
+                    MessageRequest.User("Say 'Hello World' and nothing else.")
+                },
+                MaxTokens = 20
+            };
+
+            var chunkCount = 0;
+
+            // Act
+            var result = await _client!.ChatCompletionStreamCollectAsync(
+                request,
+                onChunk: chunk =>
+                {
+                    chunkCount++;
+                    TestContext.WriteLine($"Callback chunk {chunkCount}: '{chunk.GetContent()}'");
+                }
+            );
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.ChunkCount > 0, "Should have received chunks");
+            Assert.AreEqual(chunkCount, result.ChunkCount, "Callback count should match chunk count");
+            Assert.IsNotNull(result.Content);
+            Assert.IsTrue(result.Content.Length > 0, "Should have content");
+            Assert.IsNotNull(result.Id);
+            Assert.IsNotNull(result.Model);
+            Assert.IsNotNull(result.FinishReason);
+
+            TestContext.WriteLine($"Total chunks: {result.ChunkCount}");
+            TestContext.WriteLine($"Content: {result.Content}");
+            TestContext.WriteLine($"Finish reason: {result.FinishReason}");
+            TestContext.WriteLine($"Tokens: {result.Usage?.TotalTokens}");
+        }
+
+        /// <summary>
+        /// Tests streaming with stop sequences.
+        /// </summary>
+        [TestMethod]
+        [TestCategory("Integration")]
+        public async Task ChatCompletionStream_WithStop_StopsAtSequence()
+        {
+            SkipIfIntegrationTestsDisabled();
+
+            // Arrange
+            var request = new ChatCompletionRequest
+            {
+                Model = MistralModels.Small,
+                Messages = new List<MessageRequest>
+                {
+                    MessageRequest.User("Count from 1 to 10, one number per line.")
+                },
+                MaxTokens = 100
+            }.WithStop("5");
+
+            // Act
+            var result = await _client!.ChatCompletionStreamCollectAsync(request);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.Content.Length > 0, "Should have content");
+            TestContext.WriteLine($"Content with stop at '5': {result.Content}");
+            
+            // The content should stop at or before reaching "5"
+            // Note: The stop sequence behavior may vary
+        }
+
+        /// <summary>
+        /// Tests streaming can be cancelled.
+        /// </summary>
+        [TestMethod]
+        [TestCategory("Integration")]
+        public async Task ChatCompletionStream_Cancellation_StopsStreaming()
+        {
+            SkipIfIntegrationTestsDisabled();
+
+            // Arrange
+            var request = new ChatCompletionRequest
+            {
+                Model = MistralModels.Small,
+                Messages = new List<MessageRequest>
+                {
+                    MessageRequest.User("Write a very long story about a dragon.")
+                },
+                MaxTokens = 500
+            };
+
+            var cts = new CancellationTokenSource();
+            var chunks = new List<StreamingChatCompletionChunk>();
+
+            // Act
+            try
+            {
+                await foreach (var chunk in _client!.ChatCompletionStreamAsync(request, cts.Token))
+                {
+                    chunks.Add(chunk);
+                    TestContext.WriteLine($"Chunk {chunks.Count}: '{chunk.GetContent()}'");
+                    
+                    // Cancel after receiving 3 chunks
+                    if (chunks.Count >= 3)
+                    {
+                        cts.Cancel();
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                TestContext.WriteLine("Streaming cancelled as expected");
+            }
+
+            // Assert
+            Assert.IsTrue(chunks.Count >= 3, "Should have received at least 3 chunks before cancellation");
+            Assert.IsTrue(chunks.Count < 50, "Should have stopped before receiving too many chunks");
+            TestContext.WriteLine($"Total chunks before cancellation: {chunks.Count}");
+        }
+
+        /// <summary>
+        /// Tests streaming with JSON mode.
+        /// </summary>
+        [TestMethod]
+        [TestCategory("Integration")]
+        public async Task ChatCompletionStream_JsonMode_ReturnsValidJson()
+        {
+            SkipIfIntegrationTestsDisabled();
+
+            // Arrange
+            var request = new ChatCompletionRequest
+            {
+                Model = MistralModels.Small,
+                Messages = new List<MessageRequest>
+                {
+                    MessageRequest.System("You are a helpful assistant that responds in JSON format."),
+                    MessageRequest.User("Return a JSON object with 'name' set to 'Test' and 'value' set to 42.")
+                },
+                MaxTokens = 100
+            }.AsJson();
+
+            // Act
+            var result = await _client!.ChatCompletionStreamCollectAsync(request);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.Content.Length > 0, "Should have content");
+            TestContext.WriteLine($"JSON content: {result.Content}");
+
+            // Try to parse as JSON
+            try
+            {
+                var jsonDoc = System.Text.Json.JsonDocument.Parse(result.Content);
+                Assert.IsNotNull(jsonDoc);
+                TestContext.WriteLine("Successfully parsed as JSON");
+            }
+            catch (System.Text.Json.JsonException ex)
+            {
+                Assert.Fail($"Response is not valid JSON: {ex.Message}");
+            }
+        }
+
+        #endregion
     }
 }

@@ -139,7 +139,7 @@ namespace MistralSDK.Examples
 
                 var request = new ChatCompletionRequest
                 {
-                    Model = MistralModels.Medium,
+                    Model = MistralModels.Small,
                     Messages = conversation,
                     Temperature = 0.3, // Lower temperature for more focused technical answers
                     MaxTokens = 300
@@ -171,7 +171,7 @@ namespace MistralSDK.Examples
                     // Create a new request with the updated conversation
                     var followUpRequest = new ChatCompletionRequest
                     {
-                        Model = MistralModels.Medium,
+                        Model = MistralModels.Small,
                         Messages = conversation,
                         Temperature = 0.3,
                         MaxTokens = 200

@@ -5,8 +5,10 @@ using MistralSDK.Exceptions;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -153,7 +155,8 @@ namespace MistralSDK
             return new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-                WriteIndented = false
+                WriteIndented = false,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
             };
         }
 
@@ -195,22 +198,17 @@ namespace MistralSDK
                     }
                     else if (!msg.IsValid())
                     {
-                        errors.Add($"Message at index {i}: Invalid role '{msg.Role}'. Valid roles are: system, user, assistant.");
-                    }
-
-                    if (string.IsNullOrWhiteSpace(msg.Content))
-                    {
-                        errors.Add($"Message at index {i}: Content is required.");
+                        errors.Add($"Message at index {i}: Invalid message. Check role and content.");
                     }
                 }
             }
 
-            if (request.Temperature < 0.0 || request.Temperature > 2.0)
+            if (request.Temperature.HasValue && (request.Temperature.Value < 0.0 || request.Temperature.Value > 2.0))
             {
                 errors.Add($"Temperature must be between 0.0 and 2.0. Got: {request.Temperature}");
             }
 
-            if (request.TopP < 0.0 || request.TopP > 1.0)
+            if (request.TopP.HasValue && (request.TopP.Value < 0.0 || request.TopP.Value > 1.0))
             {
                 errors.Add($"TopP must be between 0.0 and 1.0. Got: {request.TopP}");
             }
@@ -218,6 +216,21 @@ namespace MistralSDK
             if (request.MaxTokens.HasValue && request.MaxTokens.Value <= 0)
             {
                 errors.Add($"MaxTokens must be greater than 0. Got: {request.MaxTokens}");
+            }
+
+            if (request.N.HasValue && request.N.Value < 1)
+            {
+                errors.Add($"N must be at least 1. Got: {request.N}");
+            }
+
+            if (request.FrequencyPenalty.HasValue && (request.FrequencyPenalty.Value < 0.0 || request.FrequencyPenalty.Value > 2.0))
+            {
+                errors.Add($"FrequencyPenalty must be between 0.0 and 2.0. Got: {request.FrequencyPenalty}");
+            }
+
+            if (request.PresencePenalty.HasValue && (request.PresencePenalty.Value < 0.0 || request.PresencePenalty.Value > 2.0))
+            {
+                errors.Add($"PresencePenalty must be between 0.0 and 2.0. Got: {request.PresencePenalty}");
             }
 
             return errors.Count == 0 ? ValidationResult.Success() : ValidationResult.Failure(errors.ToArray());
@@ -330,6 +343,148 @@ namespace MistralSDK
 
                 return response;
             }
+        }
+
+        /// <summary>
+        /// Sends a streaming chat completion request to the Mistral AI API.
+        /// Tokens are returned as they are generated via an async enumerable.
+        /// </summary>
+        /// <param name="request">The chat completion request. The Stream property will be automatically set to true.</param>
+        /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+        /// <returns>An async enumerable of streaming chunks.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the request is null.</exception>
+        /// <exception cref="MistralValidationException">Thrown when request validation fails (if ValidateRequests is enabled).</exception>
+        /// <exception cref="MistralApiException">Thrown when the API returns an error.</exception>
+        public async IAsyncEnumerable<StreamingChatCompletionChunk> ChatCompletionStreamAsync(
+            ChatCompletionRequest request, 
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            // Force streaming mode
+            request.Stream = true;
+
+            // Validate request if enabled
+            if (_options.ValidateRequests)
+            {
+                var validationResult = ValidateRequest(request);
+                if (!validationResult.IsValid)
+                {
+                    throw new MistralValidationException(validationResult.Errors.ToArray());
+                }
+            }
+
+            var jsonRequest = JsonSerializer.Serialize(request, _jsonOptions);
+            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_options.BaseUrl}/chat/completions")
+            {
+                Content = content
+            };
+
+            using var response = await _httpClient.SendAsync(
+                httpRequest, 
+                HttpCompletionOption.ResponseHeadersRead, 
+                cancellationToken).ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                throw new MistralApiException($"API error: {errorContent}", response.StatusCode);
+            }
+
+            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            using var reader = new StreamReader(stream);
+
+            while (!reader.EndOfStream && !cancellationToken.IsCancellationRequested)
+            {
+                var line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
+                
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+
+                // SSE format: "data: {...}" or "data: [DONE]"
+                if (!line.StartsWith("data: ", StringComparison.Ordinal))
+                    continue;
+
+                var data = line.Substring(6); // Remove "data: " prefix
+
+                if (data == "[DONE]")
+                    yield break;
+
+                StreamingChatCompletionChunk? chunk = null;
+                try
+                {
+                    chunk = JsonSerializer.Deserialize<StreamingChatCompletionChunk>(data, _jsonOptions);
+                }
+                catch (JsonException)
+                {
+                    // Skip malformed chunks
+                    continue;
+                }
+
+                if (chunk != null)
+                {
+                    yield return chunk;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sends a streaming chat completion request and collects all chunks into a single result.
+        /// Useful when you want streaming behavior but need the complete response.
+        /// </summary>
+        /// <param name="request">The chat completion request.</param>
+        /// <param name="onChunk">Optional callback invoked for each chunk received.</param>
+        /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+        /// <returns>The complete streaming result with all accumulated content.</returns>
+        public async Task<StreamingChatCompletionResult> ChatCompletionStreamCollectAsync(
+            ChatCompletionRequest request, 
+            Action<StreamingChatCompletionChunk>? onChunk = null,
+            CancellationToken cancellationToken = default)
+        {
+            var result = new StreamingChatCompletionResult();
+            var contentBuilder = new StringBuilder();
+
+            await foreach (var chunk in ChatCompletionStreamAsync(request, cancellationToken).ConfigureAwait(false))
+            {
+                result.Chunks.Add(chunk);
+                
+                // Set metadata from first chunk
+                if (string.IsNullOrEmpty(result.Id))
+                {
+                    result.Id = chunk.Id;
+                    result.Model = chunk.Model;
+                }
+
+                // Accumulate content
+                var content = chunk.GetContent();
+                if (!string.IsNullOrEmpty(content))
+                {
+                    contentBuilder.Append(content);
+                }
+
+                // Check for completion
+                if (chunk.Choices?.Count > 0 && chunk.Choices[0].FinishReason != null)
+                {
+                    result.FinishReason = chunk.Choices[0].FinishReason;
+                }
+
+                // Get usage from final chunk
+                if (chunk.Usage != null)
+                {
+                    result.Usage = chunk.Usage;
+                }
+
+                // Invoke callback
+                onChunk?.Invoke(chunk);
+            }
+
+            result.Content = contentBuilder.ToString();
+            return result;
         }
 
         #endregion

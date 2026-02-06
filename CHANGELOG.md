@@ -5,6 +5,67 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-02-06
+
+### 🚀 New Features
+
+#### Streaming Support
+- New `ChatCompletionStreamAsync()` method returning `IAsyncEnumerable<StreamingChatCompletionChunk>`
+- New `ChatCompletionStreamCollectAsync()` for streaming with callback and collected result
+- `StreamingChatCompletionChunk` class for individual streaming chunks
+- `StreamingChatCompletionResult` class for accumulated streaming results
+- Full cancellation support for streaming operations
+
+#### Extended Request Parameters
+- `N` - Number of completions to return (input tokens billed once)
+- `Stop` - Stop sequence(s) to end generation
+- `FrequencyPenalty` - Penalize frequent tokens (0.0-2.0)
+- `PresencePenalty` - Encourage vocabulary diversity (0.0-2.0)
+- `ResponseFormat` - JSON mode and JSON Schema support
+
+#### JSON Mode & Structured Output
+- New `ResponseFormat` class for specifying output format
+- `ResponseFormatType.Text` - Standard text output (default)
+- `ResponseFormatType.JsonObject` - Guarantees valid JSON output
+- `ResponseFormatType.JsonSchema` - Enforces specific JSON schema
+- `JsonSchema` class for defining structured output schemas
+- Fluent methods: `AsJson()` and `AsJsonSchema(schema)`
+
+#### Enhanced Message Support
+- `Prefix` property for prepending content to assistant responses
+- `ToolCallId` and `Name` properties for tool/function calling support
+- `Tool` message role for function calling results
+- Static factory methods: `MessageRequest.System()`, `.User()`, `.Assistant()`, `.Tool()`
+
+#### Updated Models
+- Added `MistralModels.PixtralLarge` - Multimodal model
+- Added `MistralModels.Saba` - Middle Eastern & South Asian languages
+- Added `MistralModels.Ministral3B` - Ultra-efficient small model
+- Added `MistralModels.Ministral8B` - Edge deployment model
+- Added `MistralModels.Codestral` - Code generation model
+- Added `MistralModels.Pixtral` - Free multimodal model
+- Added `MistralModels.Embed` - Text embeddings
+- Added `MistralModels.Moderation` - Content moderation
+- Added `MistralModels.Nemo` - Research model
+- Marked `MistralModels.Tiny` and `.Medium` as obsolete
+
+#### Other Additions
+- `PromptModes.Reasoning` constant for enhanced reasoning mode
+- `MessageRoles.Tool` constant for tool messages
+- Fluent builder methods on `ChatCompletionRequest`
+
+### 📚 Documentation
+- New streaming documentation page (`docs/streaming.md`)
+- Updated getting-started with new parameters
+- Updated API reference with all new types
+- Improved model documentation with categories
+
+### ⚠️ Breaking Changes
+- `Temperature` and `TopP` properties are now nullable (`double?`)
+- This allows the API to use its default values when not specified
+
+---
+
 ## [2.0.0] - 2026-02-06
 
 ### 🚀 Major Changes

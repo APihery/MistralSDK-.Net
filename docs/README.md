@@ -8,6 +8,7 @@ Welcome to the MistralSDK documentation. This SDK provides a comprehensive .NET 
 |----------|-------------|
 | [Getting Started](getting-started.md) | Installation and first steps |
 | [Configuration](configuration.md) | All configuration options |
+| [Streaming](streaming.md) | Real-time streaming responses |
 | [Dependency Injection](dependency-injection.md) | ASP.NET Core integration |
 | [Error Handling](error-handling.md) | Exception handling patterns |
 | [Caching](caching.md) | Response caching |

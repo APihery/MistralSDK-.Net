@@ -4,8 +4,11 @@ A simple and powerful .NET SDK for the [Mistral AI API](https://mistral.ai/).
 
 ## Features
 
-- Chat completion API support
-- All Mistral models (Tiny, Small, Medium, Large)
+- Chat completion API with full parameter support
+- **Streaming responses** with `IAsyncEnumerable`
+- All Mistral models (Large, Small, Codestral, Pixtral...)
+- JSON mode and JSON Schema support
+- Stop sequences, penalties, and sampling controls
 - Async/await with cancellation support
 - Dependency Injection ready
 - Custom exception handling
@@ -45,6 +48,15 @@ if (response.IsSuccess)
 }
 ```
 
+## Streaming
+
+```csharp
+await foreach (var chunk in client.ChatCompletionStreamAsync(request))
+{
+    Console.Write(chunk.GetContent());
+}
+```
+
 ## With Dependency Injection
 
 ```csharp
@@ -67,10 +79,10 @@ public class MyService
 
 | Constant | Description |
 |----------|-------------|
-| `MistralModels.Tiny` | Fastest, most cost-effective |
-| `MistralModels.Small` | Good balance |
-| `MistralModels.Medium` | High quality |
-| `MistralModels.Large` | Best quality |
+| `MistralModels.Large` | Flagship model, top-tier reasoning |
+| `MistralModels.Small` | Good balance of speed and quality |
+| `MistralModels.Ministral8B` | Efficient for edge deployment |
+| `MistralModels.Codestral` | Optimized for code generation |
 
 ## Documentation
 
@@ -78,6 +90,7 @@ For detailed documentation, see the [docs](docs/) folder:
 
 - [Getting Started](docs/getting-started.md)
 - [Configuration](docs/configuration.md)
+- [Streaming](docs/streaming.md)
 - [Dependency Injection](docs/dependency-injection.md)
 - [Error Handling](docs/error-handling.md)
 - [Caching](docs/caching.md)
