@@ -13,6 +13,8 @@ Complete reference for all public types in MistralSDK.
 | `MistralSDK.Exceptions` | Custom exceptions |
 | `MistralSDK.Extensions` | DI extensions |
 | `MistralSDK.Caching` | Caching interfaces |
+| `MistralSDK.Files` | Files API types |
+| `MistralSDK.Ocr` | OCR/Document AI types |
 
 ---
 
@@ -41,6 +43,13 @@ public class MistralClient : IMistralClient, IDisposable
 | `ChatCompletionAsync(request, ct)` | `Task<MistralResponse>` | Send a chat completion request |
 | `ChatCompletionStreamAsync(request, ct)` | `IAsyncEnumerable<StreamingChatCompletionChunk>` | Stream chat completion |
 | `ChatCompletionStreamCollectAsync(request, onChunk, ct)` | `Task<StreamingChatCompletionResult>` | Stream and collect result |
+| `FilesListAsync(ct)` | `Task<FileListResponse>` | List files |
+| `FilesUploadAsync(stream, fileName, purpose, ct)` | `Task<MistralFileInfo>` | Upload a file |
+| `FilesRetrieveAsync(fileId, ct)` | `Task<MistralFileInfo>` | Get file metadata |
+| `FilesDeleteAsync(fileId, ct)` | `Task<FileDeleteResponse>` | Delete a file |
+| `FilesDownloadAsync(fileId, ct)` | `Task<Stream>` | Download file content |
+| `FilesGetSignedUrlAsync(fileId, expiryHours, ct)` | `Task<FileSignedUrlResponse>` | Get signed download URL |
+| `OcrProcessAsync(request, ct)` | `Task<OcrResponse>` | Run OCR on document |
 | `ValidateRequest(request)` | `ValidationResult` | Validate a request |
 | `Dispose()` | `void` | Release resources |
 
@@ -368,3 +377,61 @@ Cache interface.
 ### MemoryChatCompletionCache
 
 In-memory cache implementation using `IMemoryCache`.
+
+---
+
+## MistralSDK.Files
+
+### MistralFileInfo
+
+Represents an uploaded file.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Id` | `string` | File ID |
+| `Filename` | `string` | File name |
+| `Purpose` | `string` | ocr, fine-tune, or batch |
+| `Bytes` | `int?` | File size |
+| `CreatedAt` | `long` | Unix timestamp |
+
+### FilePurpose
+
+Constants: `Ocr`, `FineTune`, `Batch`
+
+### FileListResponse, FileDeleteResponse, FileSignedUrlResponse
+
+Response types for list, delete, and signed URL operations.
+
+---
+
+## MistralSDK.Ocr
+
+### OcrDocument
+
+Abstract base for document inputs. Factory methods:
+
+| Method | Description |
+|--------|-------------|
+| `FromFileId(id)` | Uploaded file |
+| `FromDocumentUrl(url)` | PDF/document URL |
+| `FromImageUrl(url)` | Image URL |
+| `FromImageBase64(base64, mimeType)` | Base64 image |
+
+### OcrRequest
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Document` | `OcrDocument` | Required |
+| `Model` | `string` | Default: mistral-ocr-latest |
+| `TableFormat` | `string?` | markdown or html |
+| `ExtractHeader` | `bool` | Extract header |
+| `ExtractFooter` | `bool` | Extract footer |
+| `Pages` | `List<int>?` | Pages to process (0-based) |
+
+### OcrResponse
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Pages` | `List<OcrPage>` | Extracted pages |
+| `Model` | `string` | Model used |
+| `GetAllMarkdown()` | `string` | Concatenated content |

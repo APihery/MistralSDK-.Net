@@ -457,6 +457,9 @@ api-key.txt
 api-key.*.txt
 mistral-api-key.txt
 
+# NuGet publish - API key and publish scripts (contains secrets)
+Nuget/
+
 # Test configuration with secrets
 appsettings.test.json
 

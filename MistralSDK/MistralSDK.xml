@@ -48,6 +48,64 @@
             <param name="request">The request to validate.</param>
             <returns>A validation result indicating whether the request is valid.</returns>
         </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.FilesListAsync(System.Threading.CancellationToken)">
+            <summary>
+            Lists files in the organization.
+            </summary>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>List of files.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.FilesUploadAsync(System.IO.Stream,System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Uploads a file for OCR, fine-tuning, or batch processing.
+            </summary>
+            <param name="fileStream">The file stream to upload.</param>
+            <param name="fileName">The file name.</param>
+            <param name="purpose">Purpose: ocr, fine-tune, or batch.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The uploaded file info.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.FilesRetrieveAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Retrieves information about a specific file.
+            </summary>
+            <param name="fileId">The file ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>File information.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.FilesDeleteAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Deletes a file.
+            </summary>
+            <param name="fileId">The file ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Delete result.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.FilesDownloadAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Downloads file content as a stream.
+            </summary>
+            <param name="fileId">The file ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The file content stream.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.FilesGetSignedUrlAsync(System.String,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Gets a signed URL for downloading a file.
+            </summary>
+            <param name="fileId">The file ID.</param>
+            <param name="expiryHours">URL validity in hours. Default 24.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Signed URL response.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.OcrProcessAsync(MistralSDK.Ocr.OcrRequest,System.Threading.CancellationToken)">
+            <summary>
+            Performs OCR on a document (PDF, image, or uploaded file).
+            </summary>
+            <param name="request">The OCR request.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>OCR response with extracted text and structure.</returns>
+        </member>
         <member name="T:MistralSDK.Abstractions.ValidationResult">
             <summary>
             Represents the result of a validation operation.
@@ -1473,6 +1531,97 @@
             </code>
             </example>
         </member>
+        <member name="T:MistralSDK.Files.MistralFileInfo">
+            <summary>
+            Represents a file in the Mistral AI Files API.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Files.MistralFileInfo.Id">
+            <summary>Unique identifier of the file.</summary>
+        </member>
+        <member name="P:MistralSDK.Files.MistralFileInfo.Object">
+            <summary>Object type, always "file".</summary>
+        </member>
+        <member name="P:MistralSDK.Files.MistralFileInfo.Bytes">
+            <summary>Size of the file in bytes.</summary>
+        </member>
+        <member name="P:MistralSDK.Files.MistralFileInfo.CreatedAt">
+            <summary>UNIX timestamp when the file was created.</summary>
+        </member>
+        <member name="P:MistralSDK.Files.MistralFileInfo.Filename">
+            <summary>Name of the uploaded file.</summary>
+        </member>
+        <member name="P:MistralSDK.Files.MistralFileInfo.Purpose">
+            <summary>Purpose of the file: "fine-tune", "batch", or "ocr".</summary>
+        </member>
+        <member name="P:MistralSDK.Files.MistralFileInfo.SampleType">
+            <summary>Sample type for batch files.</summary>
+        </member>
+        <member name="P:MistralSDK.Files.MistralFileInfo.Source">
+            <summary>Source: "upload", "repository", or "mistral".</summary>
+        </member>
+        <member name="P:MistralSDK.Files.MistralFileInfo.Deleted">
+            <summary>Whether the file has been deleted.</summary>
+        </member>
+        <member name="P:MistralSDK.Files.MistralFileInfo.NumLines">
+            <summary>Number of lines (for JSONL files).</summary>
+        </member>
+        <member name="P:MistralSDK.Files.MistralFileInfo.Mimetype">
+            <summary>MIME type of the file.</summary>
+        </member>
+        <member name="P:MistralSDK.Files.MistralFileInfo.Signature">
+            <summary>File signature.</summary>
+        </member>
+        <member name="T:MistralSDK.Files.FileListResponse">
+            <summary>
+            Response from listing files.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Files.FileListResponse.Data">
+            <summary>List of files.</summary>
+        </member>
+        <member name="P:MistralSDK.Files.FileListResponse.Object">
+            <summary>Object type, always "list".</summary>
+        </member>
+        <member name="P:MistralSDK.Files.FileListResponse.Total">
+            <summary>Total number of files.</summary>
+        </member>
+        <member name="T:MistralSDK.Files.FileDeleteResponse">
+            <summary>
+            Response from deleting a file.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Files.FileDeleteResponse.Id">
+            <summary>ID of the deleted file.</summary>
+        </member>
+        <member name="P:MistralSDK.Files.FileDeleteResponse.Object">
+            <summary>Object type.</summary>
+        </member>
+        <member name="P:MistralSDK.Files.FileDeleteResponse.Deleted">
+            <summary>Whether the file was deleted.</summary>
+        </member>
+        <member name="T:MistralSDK.Files.FileSignedUrlResponse">
+            <summary>
+            Response from getting a signed URL.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Files.FileSignedUrlResponse.Url">
+            <summary>The signed URL for downloading the file.</summary>
+        </member>
+        <member name="T:MistralSDK.Files.FilePurpose">
+            <summary>
+            Purpose for uploaded files.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.Files.FilePurpose.FineTune">
+            <summary>For fine-tuning models.</summary>
+        </member>
+        <member name="F:MistralSDK.Files.FilePurpose.Batch">
+            <summary>For batch processing.</summary>
+        </member>
+        <member name="F:MistralSDK.Files.FilePurpose.Ocr">
+            <summary>For OCR processing.</summary>
+        </member>
         <member name="T:MistralSDK.MistralClient">
             <summary>
             Client for interacting with the Mistral AI API.
@@ -1601,6 +1750,32 @@
             <param name="jsonResponse">The JSON response body from the API.</param>
             <returns>A <see cref="T:MistralSDK.MistralResponse"/> object with parsed content or error information.</returns>
         </member>
+        <member name="M:MistralSDK.MistralClient.FilesListAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.FilesUploadAsync(System.IO.Stream,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.FilesRetrieveAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.FilesDeleteAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.FilesDownloadAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.FilesGetSignedUrlAsync(System.String,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.OcrProcessAsync(MistralSDK.Ocr.OcrRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.EnsureSuccessOrThrowAsync(System.Net.Http.HttpResponseMessage,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Ensures the response is successful or throws MistralApiException.
+            </summary>
+        </member>
         <member name="M:MistralSDK.MistralClient.Dispose(System.Boolean)">
             <summary>
             Releases the unmanaged resources used by the <see cref="T:MistralSDK.MistralClient"/> and optionally releases the managed resources.
@@ -1649,6 +1824,167 @@
             Initializes a new instance of the <see cref="T:MistralSDK.MistralResponse"/> class.
             </summary>
             <param name="statusCode">The HTTP status code of the response.</param>
+        </member>
+        <member name="T:MistralSDK.Ocr.OcrDocument">
+            <summary>
+            Base class for OCR document inputs.
+            Use the static factory methods to create instances.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Ocr.OcrDocument.FromFileId(System.String)">
+            <summary>Creates a document input from an uploaded file ID.</summary>
+        </member>
+        <member name="M:MistralSDK.Ocr.OcrDocument.FromDocumentUrl(System.String)">
+            <summary>Creates a document input from a PDF/document URL.</summary>
+        </member>
+        <member name="M:MistralSDK.Ocr.OcrDocument.FromImageUrl(System.String)">
+            <summary>Creates a document input from an image URL (http/https or data URI).</summary>
+        </member>
+        <member name="M:MistralSDK.Ocr.OcrDocument.FromImageBase64(System.String,System.String)">
+            <summary>Creates a document input from base64-encoded image data.</summary>
+        </member>
+        <member name="T:MistralSDK.Ocr.OcrFileDocument">
+            <summary>Document from an uploaded file ID.</summary>
+        </member>
+        <member name="T:MistralSDK.Ocr.OcrDocumentUrlDocument">
+            <summary>Document from a PDF/document URL.</summary>
+        </member>
+        <member name="T:MistralSDK.Ocr.OcrImageUrlDocument">
+            <summary>Document from an image URL.</summary>
+        </member>
+        <member name="T:MistralSDK.Ocr.OcrImageUrl">
+            <summary>Image URL (http, https, or data URI).</summary>
+        </member>
+        <member name="T:MistralSDK.Ocr.OcrRequest">
+            <summary>
+            Request for the Mistral OCR API.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrRequest.Document">
+            <summary>Document to process. Use OcrDocument.FromFileId/FromDocumentUrl/FromImageUrl.</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrRequest.Model">
+            <summary>Model to use. Default is "mistral-ocr-latest".</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrRequest.TableFormat">
+            <summary>Table format: "markdown" or "html".</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrRequest.ExtractHeader">
+            <summary>Extract header content separately.</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrRequest.ExtractFooter">
+            <summary>Extract footer content separately.</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrRequest.IncludeImageBase64">
+            <summary>Include base64-encoded images in response.</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrRequest.ImageLimit">
+            <summary>Max images to extract.</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrRequest.ImageMinSize">
+            <summary>Minimum size of images to extract (height/width in pixels).</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrRequest.Pages">
+            <summary>Specific pages to process (0-based).</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrRequest.DocumentAnnotationPrompt">
+            <summary>Optional prompt for document annotation (structured extraction).</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrRequest.DocumentAnnotationFormat">
+            <summary>Response format for document annotation.</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrRequest.BboxAnnotationFormat">
+            <summary>Response format for bbox annotation.</summary>
+        </member>
+        <member name="T:MistralSDK.Ocr.OcrModels">
+            <summary>
+            OCR model constants.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.Ocr.OcrModels.MistralOcrLatest">
+            <summary>Latest Mistral OCR model.</summary>
+        </member>
+        <member name="T:MistralSDK.Ocr.OcrTableFormat">
+            <summary>
+            Table format for OCR output.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Ocr.OcrResponse">
+            <summary>
+            Response from the Mistral OCR API.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrResponse.Pages">
+            <summary>List of processed pages with extracted content.</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrResponse.Model">
+            <summary>Model used for OCR.</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrResponse.DocumentAnnotation">
+            <summary>Document-level annotation if requested.</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrResponse.UsageInfo">
+            <summary>Usage information.</summary>
+        </member>
+        <member name="M:MistralSDK.Ocr.OcrResponse.GetAllMarkdown">
+            <summary>Combined markdown from all pages.</summary>
+        </member>
+        <member name="M:MistralSDK.Ocr.OcrResponse.GetPlainText">
+            <summary>Full text content (strip markdown formatting for plain text).</summary>
+        </member>
+        <member name="T:MistralSDK.Ocr.OcrPage">
+            <summary>
+            OCR result for a single page.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrPage.Index">
+            <summary>Page index (1-based).</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrPage.Markdown">
+            <summary>Extracted content in markdown format.</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrPage.Images">
+            <summary>Extracted images with bounding boxes.</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrPage.Tables">
+            <summary>Extracted tables.</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrPage.Hyperlinks">
+            <summary>Hyperlinks detected in the page.</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrPage.Header">
+            <summary>Header content when extract_header is true.</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrPage.Footer">
+            <summary>Footer content when extract_footer is true.</summary>
+        </member>
+        <member name="P:MistralSDK.Ocr.OcrPage.Dimensions">
+            <summary>Page dimensions.</summary>
+        </member>
+        <member name="T:MistralSDK.Ocr.OcrExtractedImage">
+            <summary>
+            Extracted image from a document page.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Ocr.OcrExtractedTable">
+            <summary>
+            Extracted table from a document page.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Ocr.OcrHyperlink">
+            <summary>
+            Hyperlink detected in a document.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Ocr.OcrDimensions">
+            <summary>
+            Page dimensions.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Ocr.OcrUsageInfo">
+            <summary>
+            OCR usage information.
+            </summary>
         </member>
     </members>
 </doc>

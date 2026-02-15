@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-02-13
+
+### 🚀 New Features
+
+#### Files API
+- `FilesListAsync()` - List files in the organization
+- `FilesUploadAsync(stream, fileName, purpose)` - Upload files for OCR, fine-tuning, or batch
+- `FilesRetrieveAsync(fileId)` - Retrieve file metadata
+- `FilesDeleteAsync(fileId)` - Delete a file
+- `FilesDownloadAsync(fileId)` - Download file content as stream
+- `FilesGetSignedUrlAsync(fileId, expiryHours)` - Get signed download URL
+- `MistralFileInfo`, `FileListResponse`, `FileDeleteResponse`, `FileSignedUrlResponse` types
+- `FilePurpose.Ocr`, `FilePurpose.FineTune`, `FilePurpose.Batch` constants
+
+#### OCR API (Document AI)
+- `OcrProcessAsync(request)` - Extract text from PDFs and images
+- Document input via `OcrDocument.FromFileId()`, `FromDocumentUrl()`, `FromImageUrl()`, `FromImageBase64()`
+- Support for PDFs, images (URL or base64), and uploaded files
+- `OcrRequest` with table format (markdown/html), header/footer extraction, page selection
+- `OcrResponse` with pages, markdown content, extracted images, usage info
+- `OcrModels.MistralOcrLatest` - Latest OCR model
+- `OcrTableFormat.Markdown`, `OcrTableFormat.Html` constants
+
+### 📚 Documentation
+- New `docs/ocr.md` - OCR and Files API guide
+- Updated API reference with OCR and Files types
+
+### 🧪 Testing
+- 32 new unit tests for OCR and Files
+- Integration tests with PDF and image assets
+- All 169 tests passing
+
+---
+
 ## [2.1.0] - 2026-02-06
 
 ### 🚀 New Features

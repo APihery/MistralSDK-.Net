@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Ressources/Logo_MistralSDK.png" alt="MistralSDK Logo" width="200"/>
+  <img src="https://raw.githubusercontent.com/APihery/MistralSDK-.Net/main/Ressources/Logo_MistralSDK.png" alt="MistralSDK Logo" width="200"/>
 </p>
 
 <h1 align="center">Mistral AI SDK for .NET</h1>
@@ -20,6 +20,8 @@
 ## Features
 
 - Chat completion API with full parameter support
+- **OCR / Document AI** - Extract text from PDFs and images
+- **Files API** - Upload, list, download files for OCR/fine-tuning
 - **Streaming responses** with `IAsyncEnumerable`
 - All Mistral models (Large, Small, Codestral, Pixtral...)
 - JSON mode and JSON Schema support
@@ -32,6 +34,10 @@
 ## Installation
 
 ```bash
+# Via NuGet (recommandé)
+dotnet add package MistralSDK.Net
+
+# Ou par référence projet
 dotnet add reference path/to/MistralSDK.csproj
 ```
 
@@ -62,6 +68,26 @@ if (response.IsSuccess)
     Console.WriteLine(response.Message);
 }
 ```
+
+## OCR (Extract text from documents)
+
+```csharp
+using MistralSDK;
+using MistralSDK.Files;
+using MistralSDK.Ocr;
+
+// From file path - upload then OCR
+using var stream = File.OpenRead("document.pdf");
+var file = await client.FilesUploadAsync(stream, "document.pdf", FilePurpose.Ocr);
+var ocrResult = await client.OcrProcessAsync(new OcrRequest
+{
+    Document = OcrDocument.FromFileId(file.Id),
+    Model = OcrModels.MistralOcrLatest
+});
+Console.WriteLine(ocrResult.GetAllMarkdown());
+```
+
+See the [OCR documentation](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/ocr.md) for more examples.
 
 ## Streaming
 
@@ -128,20 +154,21 @@ var followUp = await client.ChatCompletionAsync(new ChatCompletionRequest
 });
 ```
 
-See the [complete chat example](docs/getting-started.md#multi-turn-conversation-chat-with-context) in the documentation.
+See the [complete chat example](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/getting-started.md#multi-turn-conversation-chat-with-context) in the documentation.
 
 ## Documentation
 
-For detailed documentation, see the [docs](docs/) folder:
+For detailed documentation, see the [docs](https://github.com/APihery/MistralSDK-.Net/tree/main/docs) folder:
 
-- [Getting Started](docs/getting-started.md) - First steps and chat examples
-- [Configuration](docs/configuration.md)
-- [Streaming](docs/streaming.md)
-- [Dependency Injection](docs/dependency-injection.md)
-- [Error Handling](docs/error-handling.md)
-- [Caching](docs/caching.md)
-- [Testing](docs/testing.md)
-- [API Reference](docs/api-reference.md)
+- [Getting Started](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/getting-started.md) - First steps and chat examples
+- [OCR & Files](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/ocr.md) - Document AI and file management
+- [Configuration](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/configuration.md)
+- [Streaming](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/streaming.md)
+- [Dependency Injection](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/dependency-injection.md)
+- [Error Handling](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/error-handling.md)
+- [Caching](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/caching.md)
+- [Testing](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/testing.md)
+- [API Reference](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/api-reference.md)
 
 ## Requirements
 
@@ -150,4 +177,4 @@ For detailed documentation, see the [docs](docs/) folder:
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License - see [LICENSE](https://github.com/APihery/MistralSDK-.Net/blob/main/LICENSE) for details.

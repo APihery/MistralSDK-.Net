@@ -1,7 +1,10 @@
 using MistralSDK.ChatCompletion;
 using MistralSDK.Exceptions;
+using MistralSDK.Files;
+using MistralSDK.Ocr;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -53,6 +56,72 @@ namespace MistralSDK.Abstractions
         /// <param name="request">The request to validate.</param>
         /// <returns>A validation result indicating whether the request is valid.</returns>
         ValidationResult ValidateRequest(ChatCompletionRequest request);
+
+        #region Files API
+
+        /// <summary>
+        /// Lists files in the organization.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>List of files.</returns>
+        Task<FileListResponse> FilesListAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Uploads a file for OCR, fine-tuning, or batch processing.
+        /// </summary>
+        /// <param name="fileStream">The file stream to upload.</param>
+        /// <param name="fileName">The file name.</param>
+        /// <param name="purpose">Purpose: ocr, fine-tune, or batch.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>The uploaded file info.</returns>
+        Task<MistralFileInfo> FilesUploadAsync(Stream fileStream, string fileName, string purpose, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Retrieves information about a specific file.
+        /// </summary>
+        /// <param name="fileId">The file ID.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>File information.</returns>
+        Task<MistralFileInfo> FilesRetrieveAsync(string fileId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Deletes a file.
+        /// </summary>
+        /// <param name="fileId">The file ID.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Delete result.</returns>
+        Task<FileDeleteResponse> FilesDeleteAsync(string fileId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Downloads file content as a stream.
+        /// </summary>
+        /// <param name="fileId">The file ID.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>The file content stream.</returns>
+        Task<Stream> FilesDownloadAsync(string fileId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets a signed URL for downloading a file.
+        /// </summary>
+        /// <param name="fileId">The file ID.</param>
+        /// <param name="expiryHours">URL validity in hours. Default 24.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Signed URL response.</returns>
+        Task<FileSignedUrlResponse> FilesGetSignedUrlAsync(string fileId, int expiryHours = 24, CancellationToken cancellationToken = default);
+
+        #endregion
+
+        #region OCR API
+
+        /// <summary>
+        /// Performs OCR on a document (PDF, image, or uploaded file).
+        /// </summary>
+        /// <param name="request">The OCR request.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>OCR response with extracted text and structure.</returns>
+        Task<OcrResponse> OcrProcessAsync(OcrRequest request, CancellationToken cancellationToken = default);
+
+        #endregion
     }
 
     /// <summary>

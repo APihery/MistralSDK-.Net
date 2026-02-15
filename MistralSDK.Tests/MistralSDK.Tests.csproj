@@ -34,6 +34,29 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\Ressources\test_ocr_fr_en.pdf">
+      <Link>Ressources\test_ocr_fr_en.pdf</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Ressources\test_ocr_image_1.jpg">
+      <Link>Ressources\test_ocr_image_1.jpg</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Ressources\test_ocr_image_2.jpg">
+      <Link>Ressources\test_ocr_image_2.jpg</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Ressources\test_ocr_pdf_1.pdf">
+      <Link>Ressources\test_ocr_pdf_1.pdf</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Ressources\test_ocr_pdf_2.pdf">
+      <Link>Ressources\test_ocr_pdf_2.pdf</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
   </ItemGroup>
 

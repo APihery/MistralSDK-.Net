@@ -7,6 +7,7 @@ Welcome to the MistralSDK documentation. This SDK provides a comprehensive .NET 
 | Document | Description |
 |----------|-------------|
 | [Getting Started](getting-started.md) | Installation and first steps |
+| [OCR & Files](ocr.md) | Document AI and file management |
 | [Configuration](configuration.md) | All configuration options |
 | [Streaming](streaming.md) | Real-time streaming responses |
 | [Dependency Injection](dependency-injection.md) | ASP.NET Core integration |
@@ -23,6 +24,6 @@ Welcome to the MistralSDK documentation. This SDK provides a comprehensive .NET 
 
 ## Version
 
-Current version: **2.0.0**
+Current version: **3.0.0**
 
 See the [CHANGELOG](../CHANGELOG.md) for version history.

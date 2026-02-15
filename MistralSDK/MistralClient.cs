@@ -2,6 +2,8 @@ using MistralSDK.Abstractions;
 using MistralSDK.ChatCompletion;
 using MistralSDK.Configuration;
 using MistralSDK.Exceptions;
+using MistralSDK.Files;
+using MistralSDK.Ocr;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -556,6 +558,136 @@ namespace MistralSDK
             // Fallback for unknown error formats
             response.Message = $"Unknown error format (Status: {statusCode}): {jsonResponse}";
             return response;
+        }
+
+        #region Files API
+
+        /// <inheritdoc/>
+        public async Task<FileListResponse> FilesListAsync(CancellationToken cancellationToken = default)
+        {
+            var response = await _httpClient.GetAsync($"{_options.BaseUrl}/files", cancellationToken).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+            return JsonSerializer.Deserialize<FileListResponse>(json, _jsonOptions)
+                ?? new FileListResponse();
+        }
+
+        /// <inheritdoc/>
+        public async Task<MistralFileInfo> FilesUploadAsync(Stream fileStream, string fileName, string purpose, CancellationToken cancellationToken = default)
+        {
+            if (fileStream == null)
+                throw new ArgumentNullException(nameof(fileStream));
+            if (string.IsNullOrWhiteSpace(fileName))
+                throw new ArgumentException("File name is required.", nameof(fileName));
+            if (string.IsNullOrWhiteSpace(purpose))
+                throw new ArgumentException("Purpose is required (ocr, fine-tune, or batch).", nameof(purpose));
+
+            var validPurposes = new[] { FilePurpose.Ocr, FilePurpose.FineTune, FilePurpose.Batch };
+            if (Array.IndexOf(validPurposes, purpose) < 0)
+                throw new ArgumentException($"Purpose must be one of: {string.Join(", ", validPurposes)}", nameof(purpose));
+
+            using var content = new MultipartFormDataContent();
+            content.Add(new StreamContent(fileStream), "file", fileName);
+            content.Add(new StringContent(purpose), "purpose");
+
+            var response = await _httpClient.PostAsync($"{_options.BaseUrl}/files", content, cancellationToken).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<MistralFileInfo>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize file response.");
+        }
+
+        /// <inheritdoc/>
+        public async Task<MistralFileInfo> FilesRetrieveAsync(string fileId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(fileId))
+                throw new ArgumentException("File ID is required.", nameof(fileId));
+
+            var response = await _httpClient.GetAsync($"{_options.BaseUrl}/files/{Uri.EscapeDataString(fileId)}", cancellationToken).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<MistralFileInfo>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize file response.");
+        }
+
+        /// <inheritdoc/>
+        public async Task<FileDeleteResponse> FilesDeleteAsync(string fileId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(fileId))
+                throw new ArgumentException("File ID is required.", nameof(fileId));
+
+            var response = await _httpClient.DeleteAsync($"{_options.BaseUrl}/files/{Uri.EscapeDataString(fileId)}", cancellationToken).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<FileDeleteResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize delete response.");
+        }
+
+        /// <inheritdoc/>
+        public async Task<Stream> FilesDownloadAsync(string fileId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(fileId))
+                throw new ArgumentException("File ID is required.", nameof(fileId));
+
+            var response = await _httpClient.GetAsync($"{_options.BaseUrl}/files/{Uri.EscapeDataString(fileId)}/content", cancellationToken).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+            }
+            return await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async Task<FileSignedUrlResponse> FilesGetSignedUrlAsync(string fileId, int expiryHours = 24, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(fileId))
+                throw new ArgumentException("File ID is required.", nameof(fileId));
+
+            var url = $"{_options.BaseUrl}/files/{Uri.EscapeDataString(fileId)}/url?expiry={expiryHours}";
+            var response = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<FileSignedUrlResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize signed URL response.");
+        }
+
+        #endregion
+
+        #region OCR API
+
+        /// <inheritdoc/>
+        public async Task<OcrResponse> OcrProcessAsync(OcrRequest request, CancellationToken cancellationToken = default)
+        {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+            if (request.Document == null)
+                throw new ArgumentException("Document is required.", nameof(request));
+
+            var jsonRequest = JsonSerializer.Serialize(request, _jsonOptions);
+            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync($"{_options.BaseUrl}/ocr", content, cancellationToken).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<OcrResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize OCR response.");
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Ensures the response is successful or throws MistralApiException.
+        /// </summary>
+        private static Task EnsureSuccessOrThrowAsync(HttpResponseMessage response, string json, CancellationToken cancellationToken)
+        {
+            if (response.IsSuccessStatusCode) return Task.CompletedTask;
+            throw new MistralApiException($"API error: {json}", response.StatusCode);
         }
 
         #region IDisposable
