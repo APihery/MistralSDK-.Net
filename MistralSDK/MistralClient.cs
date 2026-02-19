@@ -1,4 +1,5 @@
 using MistralSDK.Abstractions;
+using MistralSDK.Audio;
 using MistralSDK.ChatCompletion;
 using MistralSDK.Configuration;
 using MistralSDK.Exceptions;
@@ -580,11 +581,11 @@ namespace MistralSDK
             if (string.IsNullOrWhiteSpace(fileName))
                 throw new ArgumentException("File name is required.", nameof(fileName));
             if (string.IsNullOrWhiteSpace(purpose))
-                throw new ArgumentException("Purpose is required (ocr, fine-tune, or batch).", nameof(purpose));
+                throw new ArgumentException("Purpose is required (ocr, fine-tune, batch, or audio).", nameof(purpose));
 
-            var validPurposes = new[] { FilePurpose.Ocr, FilePurpose.FineTune, FilePurpose.Batch };
+            var validPurposes = new[] { FilePurpose.Ocr, FilePurpose.FineTune, FilePurpose.Batch, FilePurpose.Audio };
             if (Array.IndexOf(validPurposes, purpose) < 0)
-                throw new ArgumentException($"Purpose must be one of: {string.Join(", ", validPurposes)}", nameof(purpose));
+                throw new ArgumentException($"Purpose must be one of: ocr, fine-tune, batch, or audio.", nameof(purpose));
 
             using var content = new MultipartFormDataContent();
             content.Add(new StreamContent(fileStream), "file", fileName);
@@ -677,6 +678,105 @@ namespace MistralSDK
 
             return JsonSerializer.Deserialize<OcrResponse>(json, _jsonOptions)
                 ?? throw new InvalidOperationException("Failed to deserialize OCR response.");
+        }
+
+        #endregion
+
+        #region Audio API
+
+        /// <inheritdoc/>
+        public async Task<TranscriptionResponse> AudioTranscribeAsync(AudioTranscriptionRequest request, CancellationToken cancellationToken = default)
+        {
+            ValidateAudioRequest(request, forStreaming: false);
+            var content = BuildAudioMultipartContent(request, stream: false);
+            var response = await _httpClient.PostAsync($"{_options.BaseUrl}/audio/transcriptions", content, cancellationToken).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+            return JsonSerializer.Deserialize<TranscriptionResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize transcription response.");
+        }
+
+        /// <inheritdoc/>
+        public async IAsyncEnumerable<TranscriptionStreamEvent> AudioTranscribeStreamAsync(
+            AudioTranscriptionRequest request,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            ValidateAudioRequest(request, forStreaming: true);
+            var content = BuildAudioMultipartContent(request, stream: true);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_options.BaseUrl}/audio/transcriptions") { Content = content };
+            using var response = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorJson = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                await EnsureSuccessOrThrowAsync(response, errorJson, cancellationToken).ConfigureAwait(false);
+            }
+
+            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            using var reader = new StreamReader(stream);
+            while (!reader.EndOfStream && !cancellationToken.IsCancellationRequested)
+            {
+                var line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
+                if (string.IsNullOrWhiteSpace(line) || !line.StartsWith("data: ", StringComparison.Ordinal))
+                    continue;
+                var data = line.Substring(6);
+                if (data == "[DONE]")
+                    yield break;
+                TranscriptionStreamEvent? evt = null;
+                try
+                {
+                    var wrapper = JsonSerializer.Deserialize<TranscriptionStreamEvents>(data, _jsonOptions);
+                    evt = wrapper?.Data;
+                }
+                catch (JsonException) { continue; }
+                if (evt != null)
+                    yield return evt;
+            }
+        }
+
+        private static void ValidateAudioRequest(AudioTranscriptionRequest request, bool forStreaming)
+        {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+            if (string.IsNullOrWhiteSpace(request.Model))
+                throw new ArgumentException("Model is required.", nameof(request));
+            var hasInput = request.AudioStream != null || !string.IsNullOrWhiteSpace(request.FileId) || !string.IsNullOrWhiteSpace(request.FileUrl);
+            if (!hasInput)
+                throw new ArgumentException("Audio input is required. Use FromStream, FromFileId, or FromFileUrl.");
+            if (request.AudioStream != null && string.IsNullOrWhiteSpace(request.FileName))
+                throw new ArgumentException("File name is required when using stream input.", nameof(request));
+            if (!string.IsNullOrWhiteSpace(request.Language) && request.Language.Length != 2)
+                throw new ArgumentException("Language must be a 2-character code (e.g. 'en').", nameof(request));
+        }
+
+        private static MultipartFormDataContent BuildAudioMultipartContent(AudioTranscriptionRequest request, bool stream)
+        {
+            var content = new MultipartFormDataContent();
+            content.Add(new StringContent(request.Model), "model");
+            content.Add(new StringContent(stream ? "true" : "false"), "stream");
+
+            if (request.AudioStream != null && request.FileName != null)
+                content.Add(new StreamContent(request.AudioStream), "file", request.FileName);
+            if (!string.IsNullOrWhiteSpace(request.FileId))
+                content.Add(new StringContent(request.FileId), "file_id");
+            if (!string.IsNullOrWhiteSpace(request.FileUrl))
+                content.Add(new StringContent(request.FileUrl), "file_url");
+
+            content.Add(new StringContent(request.Diarize ? "true" : "false"), "diarize");
+            if (request.Language != null)
+                content.Add(new StringContent(request.Language), "language");
+            if (request.Temperature.HasValue)
+                content.Add(new StringContent(request.Temperature.Value.ToString("G", System.Globalization.CultureInfo.InvariantCulture)), "temperature");
+            if (request.ContextBias != null && request.ContextBias.Count > 0)
+            {
+                var biasJson = JsonSerializer.Serialize(request.ContextBias);
+                content.Add(new StringContent(biasJson), "context_bias");
+            }
+            if (request.TimestampGranularities != null && request.TimestampGranularities.Count > 0)
+            {
+                var granJson = JsonSerializer.Serialize(request.TimestampGranularities);
+                content.Add(new StringContent(granJson), "timestamp_granularities");
+            }
+            return content;
         }
 
         #endregion

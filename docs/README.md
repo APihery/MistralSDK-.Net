@@ -7,6 +7,7 @@ Welcome to the MistralSDK documentation. This SDK provides a comprehensive .NET 
 | Document | Description |
 |----------|-------------|
 | [Getting Started](getting-started.md) | Installation and first steps |
+| [Audio & Transcription](audio.md) | Transcribe audio to text |
 | [OCR & Files](ocr.md) | Document AI and file management |
 | [Configuration](configuration.md) | All configuration options |
 | [Streaming](streaming.md) | Real-time streaming responses |
@@ -24,6 +25,6 @@ Welcome to the MistralSDK documentation. This SDK provides a comprehensive .NET 
 
 ## Version
 
-Current version: **3.0.0**
+Current version: **4.0.0**
 
 See the [CHANGELOG](../CHANGELOG.md) for version history.

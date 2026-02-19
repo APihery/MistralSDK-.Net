@@ -20,8 +20,9 @@
 ## Features
 
 - Chat completion API with full parameter support
+- **Audio & Transcription** - Transcribe audio to text (Voxtral models)
 - **OCR / Document AI** - Extract text from PDFs and images
-- **Files API** - Upload, list, download files for OCR/fine-tuning
+- **Files API** - Upload, list, download files for OCR/fine-tuning/audio
 - **Streaming responses** with `IAsyncEnumerable`
 - All Mistral models (Large, Small, Codestral, Pixtral...)
 - JSON mode and JSON Schema support
@@ -88,6 +89,25 @@ Console.WriteLine(ocrResult.GetAllMarkdown());
 ```
 
 See the [OCR documentation](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/ocr.md) for more examples.
+
+## Audio transcription
+
+```csharp
+using MistralSDK;
+using MistralSDK.Audio;
+
+// From URL
+var request = AudioTranscriptionRequestBuilder.FromFileUrl("https://example.com/audio.mp3");
+var result = await client.AudioTranscribeAsync(request);
+Console.WriteLine(result.Text);
+
+// Or from a local file
+using var stream = File.OpenRead("meeting.mp3");
+var req = AudioTranscriptionRequestBuilder.FromStream(stream, "meeting.mp3");
+var transcript = await client.AudioTranscribeAsync(req);
+```
+
+See the [Audio documentation](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/audio.md) for streaming, diarization, and timestamps.
 
 ## Streaming
 
@@ -161,6 +181,7 @@ See the [complete chat example](https://github.com/APihery/MistralSDK-.Net/blob/
 For detailed documentation, see the [docs](https://github.com/APihery/MistralSDK-.Net/tree/main/docs) folder:
 
 - [Getting Started](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/getting-started.md) - First steps and chat examples
+- [Audio & Transcription](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/audio.md) - Transcribe audio to text
 - [OCR & Files](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/ocr.md) - Document AI and file management
 - [Configuration](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/configuration.md)
 - [Streaming](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/streaming.md)

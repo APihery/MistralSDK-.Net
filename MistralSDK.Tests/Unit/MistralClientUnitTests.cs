@@ -6,6 +6,7 @@ using MistralSDK.Abstractions;
 using MistralSDK.ChatCompletion;
 using MistralSDK.Configuration;
 using MistralSDK.Exceptions;
+using MistralSDK.Audio;
 using MistralSDK.Files;
 using MistralSDK.Ocr;
 using System;
@@ -729,7 +730,210 @@ namespace MistralSDK.Tests.Unit
 
         #endregion
 
-        #region Helper Methods
+        #region Audio API Tests
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public async Task AudioTranscribeAsync_NullRequest_Throws()
+        {
+            using var client = new MistralClient(_httpClient, _options);
+            await client.AudioTranscribeAsync(null!);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public async Task AudioTranscribeAsync_NoInput_Throws()
+        {
+            using var client = new MistralClient(_httpClient, _options);
+            var request = new AudioTranscriptionRequest { Model = AudioModels.VoxtralMiniLatest };
+            await client.AudioTranscribeAsync(request);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public async Task AudioTranscribeAsync_EmptyModel_Throws()
+        {
+            using var client = new MistralClient(_httpClient, _options);
+            var request = AudioTranscriptionRequestBuilder.FromFileUrl("https://example.com/audio.mp3", "");
+            await client.AudioTranscribeAsync(request);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public async Task AudioTranscribeAsync_InvalidLanguage_Throws()
+        {
+            using var client = new MistralClient(_httpClient, _options);
+            var request = AudioTranscriptionRequestBuilder.FromFileUrl("https://example.com/audio.mp3");
+            request.Language = "english"; // Must be 2 chars
+            await client.AudioTranscribeAsync(request);
+        }
+
+        [TestMethod]
+        public async Task AudioTranscribeAsync_FromFileUrl_Success_ReturnsResponse()
+        {
+            var response = new { model = "voxtral-mini-2507", text = "Transcribed text", language = "en", segments = Array.Empty<object>(), usage = new { prompt_tokens = 4, completion_tokens = 10, total_tokens = 14, prompt_audio_seconds = 5 } };
+            SetupMockResponse(HttpStatusCode.OK, response);
+            using var client = new MistralClient(_httpClient, _options);
+            var request = AudioTranscriptionRequestBuilder.FromFileUrl("https://example.com/audio.mp3");
+            var result = await client.AudioTranscribeAsync(request);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("voxtral-mini-2507", result.Model);
+            Assert.AreEqual("Transcribed text", result.Text);
+            Assert.AreEqual("en", result.Language);
+        }
+
+        [TestMethod]
+        public async Task AudioTranscribeAsync_FromFileId_Success_ReturnsResponse()
+        {
+            var response = new { model = "voxtral-mini-2507", text = "Transcribed", language = "en", segments = Array.Empty<object>(), usage = new { prompt_tokens = 1, completion_tokens = 5, total_tokens = 6 } };
+            SetupMockResponse(HttpStatusCode.OK, response);
+            using var client = new MistralClient(_httpClient, _options);
+            var request = AudioTranscriptionRequestBuilder.FromFileId("file-123");
+            var result = await client.AudioTranscribeAsync(request);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("Transcribed", result.Text);
+        }
+
+        [TestMethod]
+        public async Task AudioTranscribeAsync_FromStream_Success_ReturnsResponse()
+        {
+            var response = new { model = "voxtral-mini-2507", text = "Stream transcribed", language = "en", segments = Array.Empty<object>(), usage = new { prompt_tokens = 2, completion_tokens = 8, total_tokens = 10, prompt_audio_seconds = 3 } };
+            SetupMockResponse(HttpStatusCode.OK, response);
+            using var client = new MistralClient(_httpClient, _options);
+            using var stream = new MemoryStream(new byte[500]);
+            var request = AudioTranscriptionRequestBuilder.FromStream(stream, "audio.mp3");
+            var result = await client.AudioTranscribeAsync(request);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("Stream transcribed", result.Text);
+        }
+
+        [TestMethod]
+        public async Task AudioTranscribeAsync_Unauthorized401_ThrowsMistralApiException()
+        {
+            var errorJson = """{"object":"error","message":"Invalid API key","type":"authentication_error"}""";
+            SetupRawMockResponse(HttpStatusCode.Unauthorized, errorJson);
+            using var client = new MistralClient(_httpClient, _options);
+            var request = AudioTranscriptionRequestBuilder.FromFileUrl("https://example.com/audio.mp3");
+            await Assert.ThrowsExceptionAsync<MistralApiException>(() =>
+                client.AudioTranscribeAsync(request));
+        }
+
+        [TestMethod]
+        public async Task AudioTranscribeAsync_BadRequest400_ThrowsMistralApiException()
+        {
+            var errorJson = """{"object":"error","message":"Unsupported audio format","type":"invalid_request_error"}""";
+            SetupRawMockResponse(HttpStatusCode.BadRequest, errorJson);
+            using var client = new MistralClient(_httpClient, _options);
+            var request = AudioTranscriptionRequestBuilder.FromFileUrl("https://example.com/audio.xyz");
+            await Assert.ThrowsExceptionAsync<MistralApiException>(() =>
+                client.AudioTranscribeAsync(request));
+        }
+
+        [TestMethod]
+        public async Task AudioTranscribeAsync_NotFound404_ThrowsMistralApiException()
+        {
+            var errorJson = """{"object":"error","message":"File not found","type":"invalid_request_error"}""";
+            SetupRawMockResponse(HttpStatusCode.NotFound, errorJson);
+            using var client = new MistralClient(_httpClient, _options);
+            var request = AudioTranscriptionRequestBuilder.FromFileId("file-nonexistent");
+            await Assert.ThrowsExceptionAsync<MistralApiException>(() =>
+                client.AudioTranscribeAsync(request));
+        }
+
+        [TestMethod]
+        public async Task AudioTranscribeAsync_InternalServerError500_ThrowsMistralApiException()
+        {
+            var errorJson = """{"object":"error","message":"Internal server error","type":"server_error"}""";
+            SetupRawMockResponse(HttpStatusCode.InternalServerError, errorJson);
+            using var client = new MistralClient(_httpClient, _options);
+            var request = AudioTranscriptionRequestBuilder.FromFileUrl("https://example.com/audio.mp3");
+            await Assert.ThrowsExceptionAsync<MistralApiException>(() =>
+                client.AudioTranscribeAsync(request));
+        }
+
+        [TestMethod]
+        public async Task AudioTranscribeAsync_RateLimit429_ThrowsMistralApiException()
+        {
+            var errorJson = """{"object":"error","message":"Rate limit exceeded","type":"rate_limit_error"}""";
+            SetupRawMockResponse(HttpStatusCode.TooManyRequests, errorJson);
+            using var client = new MistralClient(_httpClient, _options);
+            var request = AudioTranscriptionRequestBuilder.FromFileUrl("https://example.com/audio.mp3");
+            await Assert.ThrowsExceptionAsync<MistralApiException>(() =>
+                client.AudioTranscribeAsync(request));
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public async Task AudioTranscribeStreamAsync_NullRequest_Throws()
+        {
+            using var client = new MistralClient(_httpClient, _options);
+            await foreach (var _ in client.AudioTranscribeStreamAsync(null!))
+                break;
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public async Task AudioTranscribeStreamAsync_NoInput_Throws()
+        {
+            using var client = new MistralClient(_httpClient, _options);
+            var request = new AudioTranscriptionRequest { Model = AudioModels.VoxtralMiniLatest };
+            await foreach (var _ in client.AudioTranscribeStreamAsync(request))
+                break;
+        }
+
+        [TestMethod]
+        public async Task AudioTranscribeAsync_EmptyStream_SendsToApi_ReturnsError()
+        {
+            var errorJson = """{"object":"error","message":"Invalid or empty audio file","type":"invalid_request_error"}""";
+            SetupRawMockResponse(HttpStatusCode.BadRequest, errorJson);
+            using var client = new MistralClient(_httpClient, _options);
+            using var stream = new MemoryStream();
+            var request = AudioTranscriptionRequestBuilder.FromStream(stream, "empty.mp3");
+            await Assert.ThrowsExceptionAsync<MistralApiException>(() =>
+                client.AudioTranscribeAsync(request));
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public async Task AudioTranscribeAsync_LanguageThreeChars_Throws()
+        {
+            using var client = new MistralClient(_httpClient, _options);
+            var request = AudioTranscriptionRequestBuilder.FromFileUrl("https://example.com/a.mp3");
+            request.Language = "eng";
+            await client.AudioTranscribeAsync(request);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public async Task AudioTranscribeAsync_LanguageOneChar_Throws()
+        {
+            using var client = new MistralClient(_httpClient, _options);
+            var request = AudioTranscriptionRequestBuilder.FromFileUrl("https://example.com/a.mp3");
+            request.Language = "e";
+            await client.AudioTranscribeAsync(request);
+        }
+
+        [TestMethod]
+        public async Task AudioTranscribeAsync_ServiceUnavailable503_ThrowsMistralApiException()
+        {
+            var errorJson = """{"object":"error","message":"Service unavailable","type":"server_error"}""";
+            SetupRawMockResponse(HttpStatusCode.ServiceUnavailable, errorJson);
+            using var client = new MistralClient(_httpClient, _options);
+            var request = AudioTranscriptionRequestBuilder.FromFileUrl("https://example.com/audio.mp3");
+            await Assert.ThrowsExceptionAsync<MistralApiException>(() =>
+                client.AudioTranscribeAsync(request));
+        }
+
+        [TestMethod]
+        public async Task AudioTranscribeAsync_GatewayTimeout504_ThrowsMistralApiException()
+        {
+            var errorJson = """{"object":"error","message":"Gateway timeout","type":"timeout"}""";
+            SetupRawMockResponse(HttpStatusCode.GatewayTimeout, errorJson);
+            using var client = new MistralClient(_httpClient, _options);
+            var request = AudioTranscriptionRequestBuilder.FromFileUrl("https://example.com/audio.mp3");
+            await Assert.ThrowsExceptionAsync<MistralApiException>(() =>
+                client.AudioTranscribeAsync(request));
+        }
 
         private ChatCompletionRequest CreateValidRequest()
         {

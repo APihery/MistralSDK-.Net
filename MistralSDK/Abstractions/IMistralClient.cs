@@ -1,3 +1,4 @@
+using MistralSDK.Audio;
 using MistralSDK.ChatCompletion;
 using MistralSDK.Exceptions;
 using MistralSDK.Files;
@@ -120,6 +121,26 @@ namespace MistralSDK.Abstractions
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>OCR response with extracted text and structure.</returns>
         Task<OcrResponse> OcrProcessAsync(OcrRequest request, CancellationToken cancellationToken = default);
+
+        #endregion
+
+        #region Audio API
+
+        /// <summary>
+        /// Transcribes audio to text.
+        /// </summary>
+        /// <param name="request">Request with audio from stream, file ID, or URL.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Transcription response with text and segments.</returns>
+        Task<TranscriptionResponse> AudioTranscribeAsync(AudioTranscriptionRequest request, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Streams transcription events as they arrive.
+        /// </summary>
+        /// <param name="request">Request with audio from stream, file ID, or URL.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Async enumerable of transcription stream events.</returns>
+        IAsyncEnumerable<TranscriptionStreamEvent> AudioTranscribeStreamAsync(AudioTranscriptionRequest request, CancellationToken cancellationToken = default);
 
         #endregion
     }

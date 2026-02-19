@@ -106,6 +106,22 @@
             <param name="cancellationToken">Cancellation token.</param>
             <returns>OCR response with extracted text and structure.</returns>
         </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.AudioTranscribeAsync(MistralSDK.Audio.AudioTranscriptionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Transcribes audio to text.
+            </summary>
+            <param name="request">Request with audio from stream, file ID, or URL.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Transcription response with text and segments.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.AudioTranscribeStreamAsync(MistralSDK.Audio.AudioTranscriptionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Streams transcription events as they arrive.
+            </summary>
+            <param name="request">Request with audio from stream, file ID, or URL.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Async enumerable of transcription stream events.</returns>
+        </member>
         <member name="T:MistralSDK.Abstractions.ValidationResult">
             <summary>
             Represents the result of a validation operation.
@@ -140,6 +156,103 @@
             </summary>
             <param name="errors">The validation errors.</param>
             <returns>A failed validation result.</returns>
+        </member>
+        <member name="T:MistralSDK.Audio.AudioTranscriptionRequest">
+            <summary>
+            Request for audio transcription.
+            Provide audio via stream (FromStream), file ID (FromFileId), or URL (FromFileUrl).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Audio.AudioTranscriptionRequest.Model">
+            <summary>Model to use. Default is voxtral-mini-latest.</summary>
+        </member>
+        <member name="P:MistralSDK.Audio.AudioTranscriptionRequest.Language">
+            <summary>Language of the audio (e.g. "en"). Improves accuracy when known.</summary>
+        </member>
+        <member name="P:MistralSDK.Audio.AudioTranscriptionRequest.Temperature">
+            <summary>Temperature for sampling. Null uses model default.</summary>
+        </member>
+        <member name="P:MistralSDK.Audio.AudioTranscriptionRequest.Diarize">
+            <summary>Enable speaker diarization (who said what).</summary>
+        </member>
+        <member name="P:MistralSDK.Audio.AudioTranscriptionRequest.ContextBias">
+            <summary>Context bias: up to 100 words/phrases to guide spelling of names, terms.</summary>
+        </member>
+        <member name="P:MistralSDK.Audio.AudioTranscriptionRequest.TimestampGranularities">
+            <summary>Timestamp granularities: "segment" and/or "word".</summary>
+        </member>
+        <member name="P:MistralSDK.Audio.AudioTranscriptionRequest.AudioStream">
+            <summary>Audio stream (when using FromStream). Internal use.</summary>
+        </member>
+        <member name="P:MistralSDK.Audio.AudioTranscriptionRequest.FileName">
+            <summary>File name for stream upload. Internal use.</summary>
+        </member>
+        <member name="P:MistralSDK.Audio.AudioTranscriptionRequest.FileId">
+            <summary>File ID from Files API. Set when using FromFileId.</summary>
+        </member>
+        <member name="P:MistralSDK.Audio.AudioTranscriptionRequest.FileUrl">
+            <summary>URL of audio file. Set when using FromFileUrl.</summary>
+        </member>
+        <member name="T:MistralSDK.Audio.AudioTranscriptionRequestBuilder">
+            <summary>
+            Factory for creating AudioTranscriptionRequest with different audio sources.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Audio.AudioTranscriptionRequestBuilder.FromStream(System.IO.Stream,System.String,System.String)">
+            <summary>Create request with audio from a stream.</summary>
+        </member>
+        <member name="M:MistralSDK.Audio.AudioTranscriptionRequestBuilder.FromFileId(System.String,System.String)">
+            <summary>Create request with audio from an uploaded file ID.</summary>
+        </member>
+        <member name="M:MistralSDK.Audio.AudioTranscriptionRequestBuilder.FromFileUrl(System.String,System.String)">
+            <summary>Create request with audio from a URL.</summary>
+        </member>
+        <member name="T:MistralSDK.Audio.AudioModels">
+            <summary>Audio model constants.</summary>
+        </member>
+        <member name="F:MistralSDK.Audio.AudioModels.VoxtralMiniLatest">
+            <summary>Voxtral Mini for transcription (latest).</summary>
+        </member>
+        <member name="F:MistralSDK.Audio.AudioModels.VoxtralMini2507">
+            <summary>Voxtral Mini specific version for transcription.</summary>
+        </member>
+        <member name="F:MistralSDK.Audio.AudioModels.VoxtralMini2602">
+            <summary>Voxtral Mini Transcribe.</summary>
+        </member>
+        <member name="F:MistralSDK.Audio.AudioModels.VoxtralSmallLatest">
+            <summary>Voxtral Small for chat with audio.</summary>
+        </member>
+        <member name="T:MistralSDK.Audio.TimestampGranularity">
+            <summary>Timestamp granularity for transcription.</summary>
+        </member>
+        <member name="T:MistralSDK.Audio.TranscriptionResponse">
+            <summary>
+            Response from the audio transcription API.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Audio.TranscriptionSegmentChunk">
+            <summary>Single segment in a transcription (with optional timestamps).</summary>
+        </member>
+        <member name="T:MistralSDK.Audio.TranscriptionUsageInfo">
+            <summary>Usage information for transcription.</summary>
+        </member>
+        <member name="T:MistralSDK.Audio.TranscriptionStreamEvent">
+            <summary>Base type for transcription stream events.</summary>
+        </member>
+        <member name="T:MistralSDK.Audio.TranscriptionStreamTextDelta">
+            <summary>Text delta in streaming transcription.</summary>
+        </member>
+        <member name="T:MistralSDK.Audio.TranscriptionStreamLanguage">
+            <summary>Detected language in streaming.</summary>
+        </member>
+        <member name="T:MistralSDK.Audio.TranscriptionStreamSegmentDelta">
+            <summary>Segment with timestamps in streaming.</summary>
+        </member>
+        <member name="T:MistralSDK.Audio.TranscriptionStreamDone">
+            <summary>Final event when streaming transcription is done.</summary>
+        </member>
+        <member name="T:MistralSDK.Audio.TranscriptionStreamEvents">
+            <summary>SSE event wrapper for transcription stream.</summary>
         </member>
         <member name="T:MistralSDK.Caching.IChatCompletionCache">
             <summary>
@@ -1622,6 +1735,9 @@
         <member name="F:MistralSDK.Files.FilePurpose.Ocr">
             <summary>For OCR processing.</summary>
         </member>
+        <member name="F:MistralSDK.Files.FilePurpose.Audio">
+            <summary>For audio transcription.</summary>
+        </member>
         <member name="T:MistralSDK.MistralClient">
             <summary>
             Client for interacting with the Mistral AI API.
@@ -1769,6 +1885,12 @@
             <inheritdoc/>
         </member>
         <member name="M:MistralSDK.MistralClient.OcrProcessAsync(MistralSDK.Ocr.OcrRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.AudioTranscribeAsync(MistralSDK.Audio.AudioTranscriptionRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.AudioTranscribeStreamAsync(MistralSDK.Audio.AudioTranscriptionRequest,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="M:MistralSDK.MistralClient.EnsureSuccessOrThrowAsync(System.Net.Http.HttpResponseMessage,System.String,System.Threading.CancellationToken)">

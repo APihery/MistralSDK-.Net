@@ -24,6 +24,7 @@ Console.WriteLine($"Uploaded: {file.Id}");
 - `FilePurpose.Ocr` - For OCR processing
 - `FilePurpose.FineTune` - For model fine-tuning
 - `FilePurpose.Batch` - For batch jobs
+- `FilePurpose.Audio` - For audio transcription
 
 **File size limit:** 512 MB per file (API limit).
 

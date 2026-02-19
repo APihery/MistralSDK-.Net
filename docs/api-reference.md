@@ -15,6 +15,7 @@ Complete reference for all public types in MistralSDK.
 | `MistralSDK.Caching` | Caching interfaces |
 | `MistralSDK.Files` | Files API types |
 | `MistralSDK.Ocr` | OCR/Document AI types |
+| `MistralSDK.Audio` | Audio transcription types |
 
 ---
 
@@ -50,6 +51,8 @@ public class MistralClient : IMistralClient, IDisposable
 | `FilesDownloadAsync(fileId, ct)` | `Task<Stream>` | Download file content |
 | `FilesGetSignedUrlAsync(fileId, expiryHours, ct)` | `Task<FileSignedUrlResponse>` | Get signed download URL |
 | `OcrProcessAsync(request, ct)` | `Task<OcrResponse>` | Run OCR on document |
+| `AudioTranscribeAsync(request, ct)` | `Task<TranscriptionResponse>` | Transcribe audio to text |
+| `AudioTranscribeStreamAsync(request, ct)` | `IAsyncEnumerable<TranscriptionStreamEvent>` | Stream transcription events |
 | `ValidateRequest(request)` | `ValidationResult` | Validate a request |
 | `Dispose()` | `void` | Release resources |
 
@@ -396,7 +399,7 @@ Represents an uploaded file.
 
 ### FilePurpose
 
-Constants: `Ocr`, `FineTune`, `Batch`
+Constants: `Ocr`, `FineTune`, `Batch`, `Audio`
 
 ### FileListResponse, FileDeleteResponse, FileSignedUrlResponse
 
@@ -435,3 +438,50 @@ Abstract base for document inputs. Factory methods:
 | `Pages` | `List<OcrPage>` | Extracted pages |
 | `Model` | `string` | Model used |
 | `GetAllMarkdown()` | `string` | Concatenated content |
+
+---
+
+## MistralSDK.Audio
+
+### AudioTranscriptionRequestBuilder
+
+Factory for creating transcription requests. Methods:
+
+| Method | Description |
+|--------|-------------|
+| `FromStream(stream, fileName, model?)` | Audio from stream |
+| `FromFileId(fileId, model?)` | Uploaded file ID |
+| `FromFileUrl(url, model?)` | Audio file URL |
+
+### AudioTranscriptionRequest
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Model` | `string` | voxtral-mini-latest (default) |
+| `Language` | `string?` | 2-char code (e.g. en, fr) |
+| `Diarize` | `bool` | Speaker diarization |
+| `ContextBias` | `List<string>?` | Spelling hints |
+| `TimestampGranularities` | `List<string>?` | segment, word |
+| `Temperature` | `double?` | Sampling temperature |
+
+### TranscriptionResponse
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Model` | `string` | Model used |
+| `Text` | `string` | Full transcription |
+| `Language` | `string?` | Detected language |
+| `Segments` | `List<TranscriptionSegmentChunk>` | Timestamped segments |
+| `Usage` | `TranscriptionUsageInfo?` | Token and audio usage |
+
+### TranscriptionStreamEvent (base)
+
+Streaming events: `TranscriptionStreamTextDelta`, `TranscriptionStreamLanguage`, `TranscriptionStreamSegmentDelta`, `TranscriptionStreamDone`.
+
+### AudioModels
+
+Constants: `VoxtralMiniLatest`, `VoxtralMini2507`, `VoxtralSmallLatest`
+
+### TimestampGranularity
+
+Constants: `Segment`, `Word`

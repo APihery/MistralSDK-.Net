@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-02-15
+
+### 🚀 New Features
+
+#### Audio & Transcription API
+- `AudioTranscribeAsync(request)` - Transcribe audio to text
+- `AudioTranscribeStreamAsync(request)` - Stream transcription events in real time
+- Audio input via `AudioTranscriptionRequestBuilder.FromStream()`, `FromFileId()`, `FromFileUrl()`
+- Support for Voxtral models (voxtral-mini-latest, voxtral-small-latest)
+- Options: language hint, diarization (speaker ID), timestamps (segment/word), context bias
+- `TranscriptionResponse` with text, segments, usage (including prompt_audio_seconds)
+- Streaming events: `TranscriptionStreamTextDelta`, `TranscriptionStreamLanguage`, `TranscriptionStreamSegmentDelta`, `TranscriptionStreamDone`
+- `FilePurpose.Audio` - Upload audio files for transcription
+
+### 🔒 Security & Validation
+- Input validation for file name, URL length (≤2083 chars), language code (2 chars)
+- Path traversal prevention in file names
+- Comprehensive error handling tests (401, 404, 429, 500)
+
+### 📚 Documentation
+- New `docs/audio.md` - Audio & Transcription guide
+- Updated API reference with Audio types
+
+### 🧪 Testing
+- 18 new unit tests for Audio API (validation, success, errors)
+- 12 tests for AudioTranscriptionRequestBuilder
+
+---
+
 ## [3.0.0] - 2026-02-13
 
 ### 🚀 New Features

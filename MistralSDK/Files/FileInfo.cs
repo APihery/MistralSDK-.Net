@@ -115,5 +115,8 @@ namespace MistralSDK.Files
 
         /// <summary>For OCR processing.</summary>
         public const string Ocr = "ocr";
+
+        /// <summary>For audio transcription.</summary>
+        public const string Audio = "audio";
     }
 }
