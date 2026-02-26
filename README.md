@@ -20,6 +20,14 @@
 ## Features
 
 - Chat completion API with full parameter support
+- **Agents API** - Run completions with pre-configured agents
+- **Models API** - List, retrieve, update, archive fine-tuned models
+- **Embeddings** - Text (mistral-embed) and code (codestral-embed) embeddings for RAG
+- **FIM** - Fill-in-the-middle code completion (Codestral)
+- **Batch API** - Asynchronous batch inference for chat, embeddings, FIM, etc.
+- **Fine-Tuning** - Create and manage fine-tuning jobs
+- **Classifiers** - Moderation and classification (text & chat)
+- **Reasoning** - Chain-of-thought with Magistral models (math, coding)
 - **Audio & Transcription** - Transcribe audio to text (Voxtral models)
 - **OCR / Document AI** - Extract text from PDFs and images
 - **Files API** - Upload, list, download files for OCR/fine-tuning/audio
@@ -74,21 +82,24 @@ if (response.IsSuccess)
 
 ```csharp
 using MistralSDK;
-using MistralSDK.Files;
-using MistralSDK.Ocr;
 
-// From file path - upload then OCR
+// One-step: upload, OCR, get text (file deleted by default)
 using var stream = File.OpenRead("document.pdf");
-var file = await client.FilesUploadAsync(stream, "document.pdf", FilePurpose.Ocr);
-var ocrResult = await client.OcrProcessAsync(new OcrRequest
-{
-    Document = OcrDocument.FromFileId(file.Id),
-    Model = OcrModels.MistralOcrLatest
-});
-Console.WriteLine(ocrResult.GetAllMarkdown());
+var text = await client.OcrExtractTextAsync(stream, "document.pdf");
+Console.WriteLine(text);
 ```
 
-See the [OCR documentation](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/ocr.md) for more examples.
+For document Q&A with conversation history, use `DocumentQa`:
+
+```csharp
+using MistralSDK.Workflows;
+
+var qa = new DocumentQa(client);
+await qa.LoadDocumentAsync(File.OpenRead("contract.pdf"), "contract.pdf");
+Console.WriteLine(await qa.AskAsync("What is the termination clause?"));
+```
+
+See the [OCR documentation](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/ocr.md) and [Workflows](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/workflows.md) for more examples.
 
 ## Audio transcription
 
@@ -147,40 +158,27 @@ public class MyService
 
 ## Multi-Turn Conversation
 
-Build chatbots with context - the SDK maintains conversation history:
+Use `ChatSession` for simple multi-turn chat with automatic history:
 
 ```csharp
-var conversation = new List<MessageRequest>
-{
-    MessageRequest.System("You are a helpful assistant."),
-    MessageRequest.User("What is the capital of France?")
-};
+using MistralSDK.Conversation;
 
-var response = await client.ChatCompletionAsync(new ChatCompletionRequest
-{
-    Model = MistralModels.Small,
-    Messages = conversation
-});
+var session = new ChatSession(client) { SystemPrompt = "You are a helpful assistant." };
+session.AddUser("What is the capital of France?");
+Console.WriteLine(await session.CompleteAsync());
 
-// Add response to history for context
-conversation.Add(MessageRequest.Assistant(response.Message));
-conversation.Add(MessageRequest.User("And what's the population?"));
-
-// The AI remembers we're talking about Paris!
-var followUp = await client.ChatCompletionAsync(new ChatCompletionRequest
-{
-    Model = MistralModels.Small,
-    Messages = conversation
-});
+session.AddUser("And what's the population?");
+Console.WriteLine(await session.CompleteAsync());  // Remembers we're talking about Paris
 ```
 
-See the [complete chat example](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/getting-started.md#multi-turn-conversation-chat-with-context) in the documentation.
+See the [Workflows documentation](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/workflows.md) for ChatSession, DocumentQa, and SimpleRag.
 
 ## Documentation
 
 For detailed documentation, see the [docs](https://github.com/APihery/MistralSDK-.Net/tree/main/docs) folder:
 
 - [Getting Started](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/getting-started.md) - First steps and chat examples
+- [Workflows & Helpers](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/workflows.md) - ChatSession, DocumentQa, SimpleRag
 - [Audio & Transcription](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/audio.md) - Transcribe audio to text
 - [OCR & Files](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/ocr.md) - Document AI and file management
 - [Configuration](https://github.com/APihery/MistralSDK-.Net/blob/main/docs/configuration.md)

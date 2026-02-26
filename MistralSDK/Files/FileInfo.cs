@@ -103,7 +103,7 @@ namespace MistralSDK.Files
     }
 
     /// <summary>
-    /// Purpose for uploaded files.
+    /// Purpose for uploaded files (string constants for API).
     /// </summary>
     public static class FilePurpose
     {
@@ -118,5 +118,32 @@ namespace MistralSDK.Files
 
         /// <summary>For audio transcription.</summary>
         public const string Audio = "audio";
+    }
+
+    /// <summary>
+    /// Typed file purpose for type-safe overloads.
+    /// </summary>
+    public enum FilePurposeType
+    {
+        Ocr,
+        FineTune,
+        Batch,
+        Audio
+    }
+
+    /// <summary>
+    /// Extensions for FilePurposeType.
+    /// </summary>
+    public static class FilePurposeTypeExtensions
+    {
+        /// <summary>Gets the API string value for the purpose.</summary>
+        public static string ToApiString(this FilePurposeType purpose) => purpose switch
+        {
+            FilePurposeType.Ocr => FilePurpose.Ocr,
+            FilePurposeType.FineTune => FilePurpose.FineTune,
+            FilePurposeType.Batch => FilePurpose.Batch,
+            FilePurposeType.Audio => FilePurpose.Audio,
+            _ => FilePurpose.Ocr
+        };
     }
 }

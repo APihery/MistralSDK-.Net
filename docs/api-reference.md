@@ -10,12 +10,15 @@ Complete reference for all public types in MistralSDK.
 | `MistralSDK.Abstractions` | Interfaces |
 | `MistralSDK.ChatCompletion` | Request/response models |
 | `MistralSDK.Configuration` | Configuration options |
+| `MistralSDK.Conversation` | ChatSession for multi-turn chat |
 | `MistralSDK.Exceptions` | Custom exceptions |
 | `MistralSDK.Extensions` | DI extensions |
+| `MistralSDK.Helpers` | ConversationHelper, ChatContextBuilder |
 | `MistralSDK.Caching` | Caching interfaces |
 | `MistralSDK.Files` | Files API types |
 | `MistralSDK.Ocr` | OCR/Document AI types |
 | `MistralSDK.Audio` | Audio transcription types |
+| `MistralSDK.Workflows` | DocumentQa, SimpleRag |
 
 ---
 
@@ -51,6 +54,7 @@ public class MistralClient : IMistralClient, IDisposable
 | `FilesDownloadAsync(fileId, ct)` | `Task<Stream>` | Download file content |
 | `FilesGetSignedUrlAsync(fileId, expiryHours, ct)` | `Task<FileSignedUrlResponse>` | Get signed download URL |
 | `OcrProcessAsync(request, ct)` | `Task<OcrResponse>` | Run OCR on document |
+| `OcrExtractTextAsync(stream, fileName, deleteAfter, ct)` | `Task<string>` | One-step OCR: upload, extract text, optionally delete file |
 | `AudioTranscribeAsync(request, ct)` | `Task<TranscriptionResponse>` | Transcribe audio to text |
 | `AudioTranscribeStreamAsync(request, ct)` | `IAsyncEnumerable<TranscriptionStreamEvent>` | Stream transcription events |
 | `ValidateRequest(request)` | `ValidationResult` | Validate a request |
@@ -73,6 +77,8 @@ public class MistralResponse
 | `IsSuccess` | `bool` | Whether the request succeeded |
 | `Model` | `string?` | Model used (success only) |
 | `Usage` | `UsageInfo?` | Token usage (success only) |
+| `Data` | `object?` | Strongly-typed response when success |
+| `GetData<T>()` | `T?` | Returns `Data` cast to type `T` |
 
 ---
 
@@ -485,3 +491,100 @@ Constants: `VoxtralMiniLatest`, `VoxtralMini2507`, `VoxtralSmallLatest`
 ### TimestampGranularity
 
 Constants: `Segment`, `Word`
+
+---
+
+## MistralSDK.Conversation
+
+### ChatSession
+
+Manages conversation history and provides `CompleteAsync()` / `CompleteStreamAsync()` for multi-turn chat.
+
+```csharp
+public class ChatSession
+```
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `AddUser(content)` | `ChatSession` | Add user message |
+| `AddAssistant(content)` | `ChatSession` | Add assistant message |
+| `CompleteAsync(addToHistory, ct)` | `Task<string>` | Send conversation, return reply |
+| `CompleteStreamAsync(ct)` | `IAsyncEnumerable<string>` | Stream response |
+| `Clear(keepSystemPrompt)` | `void` | Clear history |
+| `BuildRequest()` | `ChatCompletionRequest` | Build underlying request |
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `SystemPrompt` | `string?` | Optional system prompt |
+| `Messages` | `IReadOnlyList<MessageRequest>` | Current message history |
+
+---
+
+## MistralSDK.Helpers
+
+### ConversationHelper
+
+Static helpers for managing conversation context.
+
+| Method | Description |
+|--------|-------------|
+| `TrimToLastMessages(messages, maxExchanges)` | Keep system + last N user/assistant exchanges |
+| `TrimToLastN(messages, maxMessages)` | Keep last N messages total |
+| `GetLastAssistantMessage(messages)` | Get last assistant content |
+| `GetLastUserMessage(messages)` | Get last user content |
+
+### ChatContextBuilder
+
+Fluent builder for chat requests with document context.
+
+| Method | Description |
+|--------|-------------|
+| `Create()` | Start builder |
+| `WithDocument(content, instruction?)` | Add document and optional instruction |
+| `WithInstruction(instruction)` | Add system instruction |
+| `WithUserQuestion(question)` | Set user question |
+| `WithModel(model)` | Set model |
+| `WithMaxTokens(n)` | Set max tokens |
+| `WithTemperature(t)` | Set temperature |
+| `Build()` | Build `ChatCompletionRequest` |
+
+---
+
+## MistralSDK.Workflows
+
+### DocumentQa
+
+OCR + Q&A workflow: load document, then ask questions with history.
+
+```csharp
+public class DocumentQa
+```
+
+| Method | Description |
+|--------|-------------|
+| `LoadDocumentAsync(stream, fileName, deleteAfter, ct)` | Load from file via OCR |
+| `LoadDocumentText(text)` | Load text directly |
+| `AskAsync(question, ct)` | Ask question (keeps history) |
+| `ClearHistory()` | Clear conversation, keep document |
+| `Reset()` | Clear document and history |
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `DocumentText` | `string` | Extracted document text |
+| `IsLoaded` | `bool` | Whether document is loaded |
+
+### SimpleRag
+
+Embeddings + retrieval + chat workflow.
+
+```csharp
+public class SimpleRag
+```
+
+| Method | Description |
+|--------|-------------|
+| `AddChunk(text, sourceId?)` | Add a text chunk |
+| `AddDocument(document, sourceId?, splitByParagraphs, chunkSize)` | Add document with optional splitting |
+| `IndexAsync(ct)` | Embed all chunks |
+| `AskAsync(question, topK, ct)` | Ask with retrieved context |
+| `Clear()` | Clear all chunks |

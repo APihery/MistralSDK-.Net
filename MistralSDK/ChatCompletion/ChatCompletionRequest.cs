@@ -297,12 +297,33 @@ namespace MistralSDK.ChatCompletion
         public string Role { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets the content of the message.
-        /// Required field that contains the actual text of the message.
+        /// Gets or sets the content of the message as a string.
+        /// For structured content (reasoning), use <see cref="ContentChunks"/>.
         /// </summary>
+        [JsonIgnore]
+        public string Content
+        {
+            get => MessageContentExtensions.GetContentText(_contentRaw) ?? string.Empty;
+            set => _contentRaw = value;
+        }
+
+        /// <summary>
+        /// Gets or sets structured content chunks (for reasoning models).
+        /// When set, this is serialized as "content" instead of <see cref="Content"/>.
+        /// </summary>
+        [JsonIgnore]
+        public List<ContentChunk>? ContentChunks
+        {
+            get => _contentRaw as List<ContentChunk>;
+            set => _contentRaw = value;
+        }
+
+        /// <summary>Raw content for JSON serialization. Use <see cref="Content"/> or <see cref="ContentChunks"/> in code.</summary>
         [JsonPropertyName("content")]
-        [Required]
-        public string Content { get; set; } = string.Empty;
+        [JsonConverter(typeof(MessageContentConverter))]
+        public object? ContentRaw { get => _contentRaw; set => _contentRaw = value; }
+
+        private object? _contentRaw;
 
         /// <summary>
         /// Gets or sets whether this message is a prefix.
@@ -344,8 +365,8 @@ namespace MistralSDK.ChatCompletion
             if (Role.Equals(MessageRoles.Tool, StringComparison.OrdinalIgnoreCase))
                 return !string.IsNullOrWhiteSpace(ToolCallId);
 
-            // Other messages need content
-            return !string.IsNullOrWhiteSpace(Content);
+            // Other messages need content (string or chunks)
+            return HasContent();
         }
 
         /// <summary>
@@ -361,6 +382,14 @@ namespace MistralSDK.ChatCompletion
                    role.Equals(MessageRoles.Tool, StringComparison.OrdinalIgnoreCase);
         }
 
+        /// <summary>Returns true if the message has content (string or chunks).</summary>
+        private bool HasContent()
+        {
+            if (_contentRaw is string s) return !string.IsNullOrWhiteSpace(s);
+            if (_contentRaw is List<ContentChunk> chunks) return chunks != null && chunks.Count > 0;
+            return false;
+        }
+
         #region Static Factory Methods
 
         /// <summary>
@@ -369,6 +398,11 @@ namespace MistralSDK.ChatCompletion
         /// <param name="content">The system instruction content.</param>
         /// <returns>A new MessageRequest with system role.</returns>
         public static MessageRequest System(string content) => new() { Role = MessageRoles.System, Content = content };
+
+        /// <summary>
+        /// Creates a system message with structured content (e.g. for reasoning).
+        /// </summary>
+        public static MessageRequest SystemWithChunks(List<ContentChunk> chunks) => new() { Role = MessageRoles.System, ContentChunks = chunks };
 
         /// <summary>
         /// Creates a user message.
@@ -496,6 +530,20 @@ namespace MistralSDK.ChatCompletion
         /// Mistral Nemo - research model for specific use cases.
         /// </summary>
         public const string Nemo = "open-mistral-nemo";
+
+        #endregion
+
+        #region Reasoning Models (Magistral)
+
+        /// <summary>
+        /// Magistral Small - reasoning model for efficient chain-of-thought.
+        /// </summary>
+        public const string MagistralSmall = "magistral-small-latest";
+
+        /// <summary>
+        /// Magistral Medium - reasoning model balancing performance and cost.
+        /// </summary>
+        public const string MagistralMedium = "magistral-medium-latest";
 
         #endregion
     }

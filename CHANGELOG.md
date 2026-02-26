@@ -5,6 +5,124 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2026-02-16
+
+### 🚀 New Features
+
+#### Unified MistralResponse
+- All completion APIs (Chat, Agent, FIM, Embeddings, Moderation, Classification) now return `MistralResponse`
+- `MistralResponse.Data` holds the strongly-typed response when `IsSuccess` is true
+- `MistralResponse.GetData<T>()` for typed access to Data
+
+#### Convenience overloads
+- `ChatCompletionAsync(string userMessage, string? model, int? maxTokens)` – simple one-shot chat
+- `FimCompletionAsync(string prompt, string? suffix, int? maxTokens, string? model)` – simple FIM
+- `EmbeddingsCreateAsync(string text)` and `EmbeddingsCreateAsync(string[] texts)` – simple embeddings
+- `ModerateAsync(string text, string? model)` – quick moderation
+
+#### Batch & Fine-Tuning helpers
+- `BatchRequest.ForChat(userMessage, maxTokens, customId)` – create chat batch requests easily
+- `TrainingFile.From(fileId, weight)` – create training file references
+- `BatchJobResponse.IsComplete` – true when job is in terminal state
+- `FineTuningJobResponse.IsComplete` – same for fine-tuning jobs
+- `BatchJobsListAllAsync()` – paginate all batch jobs
+- `FineTuningJobsListAllAsync()` – paginate all fine-tuning jobs
+- `BatchJobWaitUntilCompleteAsync(jobId, pollIntervalMs, timeoutMs)` – polling helper
+- `FineTuningJobWaitUntilCompleteAsync(jobId, ...)` – same for fine-tuning
+
+#### Files API
+- `FilesUploadAsync(Stream, string, FilePurposeType)` – type-safe purpose (FilePurposeType.Ocr, .FineTune, .Batch, .Audio)
+
+#### Workflows & Helpers
+- `ChatSession` – Multi-turn conversation with `CompleteAsync()` and `CompleteStreamAsync()`
+- `OcrExtractTextAsync(stream, fileName, deleteAfter)` – One-step OCR: upload → extract text → optionally delete file
+- `DocumentQa` – OCR + Q&A workflow: load document, then `AskAsync()` with history
+- `SimpleRag` – Embeddings + retrieval + chat: add documents, `IndexAsync()`, then `AskAsync()`
+- `ConversationHelper.TrimToLastMessages()` – Trim messages to last N exchanges
+- `ConversationHelper.TrimToLastN()` – Trim to last N messages
+- `ChatContextBuilder` – Fluent API to build prompts with document, instructions, and question
+- See [docs/workflows.md](docs/workflows.md)
+
+#### Fluent API
+- `FimCompletionRequest`: `WithSuffix`, `WithMaxTokens`, `WithStop`, `WithStops`
+- `EmbeddingRequest`: `WithDimension`, `ForCode`, `WithOutputDtype`
+- `EmbeddingResponse.GetFirstVector()`, `GetVector(index)`
+
+#### FIM API (Fill-in-the-Middle)
+- `FimCompletionAsync(request)` - Code completion with Codestral (prefix + optional suffix)
+- `FimCompletionRequest` - model, prompt, suffix, temperature, max_tokens, etc.
+- `FimModels.CodestralLatest`, `FimModels.Codestral2404`, `FimModels.Codestral2405`
+- Same response format as chat completions (`ChatCompletionResponse`)
+- See [docs/fim.md](docs/fim.md)
+
+#### Batch API
+- `BatchJobsListAsync(limit, after)` - List batch jobs with pagination
+- `BatchJobCreateAsync(request)` - Create batch job (input files or inline requests)
+- `BatchJobGetAsync(jobId)` - Get batch job status
+- `BatchJobCancelAsync(jobId)` - Cancel a batch job
+- Supported endpoints: chat completions, embeddings, FIM, moderations, classifications, OCR
+- See [docs/batch.md](docs/batch.md)
+
+#### Fine-Tuning API
+- `FineTuningJobsListAsync(limit, after)` - List fine-tuning jobs
+- `FineTuningJobCreateAsync(request)` - Create fine-tuning job
+- `FineTuningJobGetAsync(jobId)` - Get job status
+- `FineTuningJobCancelAsync(jobId)` - Cancel a job
+- `FineTuningJobStartAsync(jobId)` - Start a job (when auto_start=false)
+- `FineTuningJobCreateRequest`, `TrainingFile`, `CompletionTrainingParameters`
+- `FineTuneableModels` constants (open-mistral-7b, mistral-small-latest, etc.)
+- See [docs/fine-tuning.md](docs/fine-tuning.md)
+
+#### Agents API
+- `AgentCompletionAsync(request)` - Run completions with an agent ID instead of a model
+- `AgentCompletionRequest` - agent_id, messages, max_tokens, tools, tool_choice, etc.
+- Same response format as chat completions (`ChatCompletionResponse`)
+- See [docs/agents.md](docs/agents.md)
+
+#### Embeddings API
+- `EmbeddingsCreateAsync(request)` - Create text or code embeddings
+- `EmbeddingRequest` - model, input (string or array), output_dimension, output_dtype
+- `EmbeddingModels.MistralEmbed`, `EmbeddingModels.CodestralEmbed`
+- See [docs/embeddings.md](docs/embeddings.md) and [RAG Quickstart](https://docs.mistral.ai/capabilities/embeddings/rag_quickstart)
+
+#### Classifiers API
+- `ModerationsCreateAsync(request)` - Moderate text (POST /v1/moderations)
+- `ChatModerationsCreateAsync(request)` - Moderate chat (POST /v1/chat/moderations)
+- `ClassificationsCreateAsync(request)` - Classify text (POST /v1/classifications)
+- `ChatClassificationsCreateAsync(request)` - Classify chat (POST /v1/chat/classifications)
+- `ModerationResponse`, `ClassificationResponse`, `ModerationResult`
+- See [docs/classifiers.md](docs/classifiers.md)
+
+#### Models API
+- `ModelsListAsync()` - List all models available to the user
+- `ModelsRetrieveAsync(modelId)` - Retrieve model information
+- `ModelsDeleteAsync(modelId)` - Delete a fine-tuned model
+- `ModelsUpdateAsync(modelId, request)` - Update name/description of a fine-tuned model
+- `ModelsArchiveAsync(modelId)` - Archive a fine-tuned model
+- `ModelsUnarchiveAsync(modelId)` - Unarchive a fine-tuned model
+- `ModelCard`, `ModelCapabilities`, `ModelListResponse`, `UpdateFTModelRequest`, etc.
+- See [docs/models.md](docs/models.md)
+
+#### Reasoning API (Magistral)
+- `MistralModels.MagistralSmall`, `MistralModels.MagistralMedium` - Reasoning models
+- `ReasoningHelper.CreateReasoningRequest()` - Build reasoning requests with default system prompt
+- `ReasoningHelper.DefaultReasoningSystemPrompt()` - Recommended system prompt for reasoning
+- `ContentChunk`, `TextChunk`, `ThinkChunk` - Structured content for messages
+- `ContentChunkBuilder` - Build text and thinking chunks
+- `MessageRequest.SystemWithChunks()` - System message with structured content
+- `MessageContentExtensions.GetContentText()`, `GetAllContentText()`, `GetThinkingText()` - Extract text from response content
+- `MessageRequest.Content` and `MessageResponse.Content` - Support string or content chunks (reasoning output)
+- `prompt_mode: "reasoning"` or `null` - Control default system prompt
+
+### 📚 Documentation
+- New `docs/reasoning.md` - Reasoning & Magistral guide
+
+### 🔄 Backward Compatibility
+- `MessageRequest.Content` and `MessageResponse.Content` remain `string` for simple use.
+- Use `ContentChunks` for structured content (reasoning). Use `ContentRaw` when building responses from code.
+
+---
+
 ## [4.0.0] - 2026-02-15
 
 ### 🚀 New Features

@@ -15,16 +15,16 @@ using MistralSDK.Files;
 var client = new MistralClient(apiKey);
 
 using var stream = File.OpenRead("document.pdf");
-var file = await client.FilesUploadAsync(stream, "document.pdf", FilePurpose.Ocr);
+var file = await client.FilesUploadAsync(stream, "document.pdf", FilePurposeType.Ocr);
 
 Console.WriteLine($"Uploaded: {file.Id}");
 ```
 
-**Purpose values:**
-- `FilePurpose.Ocr` - For OCR processing
-- `FilePurpose.FineTune` - For model fine-tuning
-- `FilePurpose.Batch` - For batch jobs
-- `FilePurpose.Audio` - For audio transcription
+**Purpose values** (use `FilePurposeType` for type-safe overload):
+- `FilePurposeType.Ocr` - For OCR processing
+- `FilePurposeType.FineTune` - For model fine-tuning
+- `FilePurposeType.Batch` - For batch jobs
+- `FilePurposeType.Audio` - For audio transcription
 
 **File size limit:** 512 MB per file (API limit).
 
@@ -58,7 +58,24 @@ await client.FilesDeleteAsync(fileId);
 | `OcrDocument.FromImageUrl(url)` | Image from URL (http/https or data URI) |
 | `OcrDocument.FromImageBase64(base64, mimeType)` | Image from base64 |
 
+### One-step OCR (OcrExtractTextAsync)
+
+The simplest way to extract text: upload, OCR, and get text in one call. The file is deleted by default after processing.
+
+```csharp
+using MistralSDK;
+
+using var stream = File.OpenRead("receipt.jpg");
+var text = await client.OcrExtractTextAsync(stream, "receipt.jpg", deleteAfter: true);
+Console.WriteLine(text);
+
+// Keep the file on Mistral's servers for later use
+var text2 = await client.OcrExtractTextAsync(stream2, "report.pdf", deleteAfter: false);
+```
+
 ### Basic OCR (upload → process)
+
+For more control (e.g. table format, specific pages), use the full workflow:
 
 ```csharp
 using MistralSDK;
@@ -67,7 +84,7 @@ using MistralSDK.Ocr;
 
 // 1. Upload the file
 using var stream = File.OpenRead("receipt.jpg");
-var file = await client.FilesUploadAsync(stream, "receipt.jpg", FilePurpose.Ocr);
+var file = await client.FilesUploadAsync(stream, "receipt.jpg", FilePurposeType.Ocr);
 
 // 2. Run OCR
 var result = await client.OcrProcessAsync(new OcrRequest
@@ -142,9 +159,36 @@ Each `OcrPage` has:
 - `Images` - Extracted images with bounding boxes
 - `Header`, `Footer` - When extraction enabled
 
-## Discussion sur un PDF (Q&A)
+## Document Q&A
 
-Une fois le texte extrait par OCR, vous pouvez lancer une conversation avec l'IA pour poser des questions sur le document :
+### Using DocumentQa (recommended)
+
+The `DocumentQa` workflow loads a document via OCR and keeps conversation history for follow-up questions:
+
+```csharp
+using MistralSDK;
+using MistralSDK.Workflows;
+
+var qa = new DocumentQa(client);
+
+// Load from file
+using var stream = File.OpenRead("report.pdf");
+await qa.LoadDocumentAsync(stream, "report.pdf");
+
+// Ask questions
+var answer1 = await qa.AskAsync("What is the main subject of this document?");
+Console.WriteLine(answer1);
+
+var answer2 = await qa.AskAsync("Can you summarize the key points?");
+Console.WriteLine(answer2);  // Context from previous question is used
+
+qa.ClearHistory();  // Clear history but keep document
+qa.Reset();         // Reset everything
+```
+
+### Manual approach
+
+For full control, use OCR + chat completion directly:
 
 ```csharp
 using MistralSDK;
@@ -152,9 +196,9 @@ using MistralSDK.ChatCompletion;
 using MistralSDK.Files;
 using MistralSDK.Ocr;
 
-// 1. Extraire le texte du PDF
-using var stream = File.OpenRead("rapport.pdf");
-var file = await client.FilesUploadAsync(stream, "rapport.pdf", FilePurpose.Ocr);
+// 1. Extract text from PDF
+using var stream = File.OpenRead("report.pdf");
+var file = await client.FilesUploadAsync(stream, "report.pdf", FilePurposeType.Ocr);
 var ocrResult = await client.OcrProcessAsync(new OcrRequest
 {
     Document = OcrDocument.FromFileId(file.Id),
@@ -163,12 +207,12 @@ var ocrResult = await client.OcrProcessAsync(new OcrRequest
 var documentText = ocrResult.GetAllMarkdown();
 await client.FilesDeleteAsync(file.Id);
 
-// 2. Lancer une conversation sur le document
+// 2. Start a conversation about the document
 var conversation = new List<MessageRequest>
 {
-    MessageRequest.System($"Tu es un assistant qui répond aux questions sur le document suivant. " +
-        "Réponds uniquement en te basant sur le contenu fourni.\n\n---\n{documentText}"),
-    MessageRequest.User("Quel est le sujet principal de ce document ?")
+    MessageRequest.System($"You are an assistant that answers questions about the following document. " +
+        "Answer only based on the content provided.\n\n---\n{documentText}"),
+    MessageRequest.User("What is the main subject of this document?")
 };
 
 var response = await client.ChatCompletionAsync(new ChatCompletionRequest
@@ -181,10 +225,8 @@ var response = await client.ChatCompletionAsync(new ChatCompletionRequest
 if (response.IsSuccess)
 {
     Console.WriteLine(response.Message);
-    // Poser une question de suivi
     conversation.Add(MessageRequest.Assistant(response.Message));
-    conversation.Add(MessageRequest.User("Peux-tu résumer les points clés ?"));
-
+    conversation.Add(MessageRequest.User("Can you summarize the key points?"));
     var followUp = await client.ChatCompletionAsync(new ChatCompletionRequest
     {
         Model = MistralModels.Small,
@@ -195,7 +237,7 @@ if (response.IsSuccess)
 }
 ```
 
-L'IA conserve le contexte du document dans toute la conversation et peut répondre à des questions de suivi.
+See [Workflows](workflows.md) for more helpers.
 
 ## Supported formats
 
@@ -205,5 +247,6 @@ L'IA conserve le contexte du document dans toute la conversation et peut répond
 
 ## Next Steps
 
+- [Workflows](workflows.md) - DocumentQa, OcrExtractTextAsync, and more
 - [API Reference](api-reference.md) - Full type reference
 - [Error Handling](error-handling.md) - Handle API errors

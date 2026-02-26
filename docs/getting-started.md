@@ -60,14 +60,15 @@ var request = new ChatCompletionRequest
     }
 };
 
-// Send the request
+// Send the request (or use the simple overload: ChatCompletionAsync("Your question"))
 var response = await client.ChatCompletionAsync(request);
 
-// Handle the response
+// Handle the response - all APIs return MistralResponse
 if (response.IsSuccess)
 {
     Console.WriteLine($"Response: {response.Message}");
     Console.WriteLine($"Tokens used: {response.Usage?.TotalTokens}");
+    // Full response: var data = response.GetData<ChatCompletionResponse>();
 }
 else
 {
@@ -125,6 +126,36 @@ else
 | `Stream` | `bool` | false | Enable streaming response |
 
 ## Multi-Turn Conversation (Chat with Context)
+
+### Using ChatSession (recommended)
+
+`ChatSession` manages conversation history and exposes `CompleteAsync()` for simple multi-turn chat:
+
+```csharp
+using MistralSDK;
+using MistralSDK.Conversation;
+
+var session = new ChatSession(client, model: MistralModels.Small)
+{
+    SystemPrompt = "You are a helpful cooking assistant. Be concise and friendly."
+};
+
+session.AddUser("I want to make pasta for dinner tonight.");
+Console.WriteLine($"🤖 {await session.CompleteAsync()}");
+
+session.AddUser("What ingredients do I need for carbonara?");
+Console.WriteLine($"🤖 {await session.CompleteAsync()}");
+
+session.AddUser("I don't have guanciale, what can I use instead?");
+Console.WriteLine($"🤖 {await session.CompleteAsync()}");
+
+session.AddUser("Perfect! And how long should I cook the pasta?");
+Console.WriteLine($"🤖 {await session.CompleteAsync()}");
+```
+
+See [Workflows](workflows.md) for more helpers.
+
+### Manual approach
 
 The Mistral API maintains context through the message history you send. Here's an example of a complete conversation where the AI remembers previous exchanges:
 
@@ -221,6 +252,7 @@ Console.WriteLine($"🤖 Assistant: {await ChatAsync("Perfect! And how long shou
 
 ## Next Steps
 
+- [Workflows & Helpers](workflows.md) - ChatSession, DocumentQa, SimpleRag
 - [Configuration Options](configuration.md) - Customize the client behavior
 - [Dependency Injection](dependency-injection.md) - Use with ASP.NET Core
 - [Error Handling](error-handling.md) - Handle errors gracefully

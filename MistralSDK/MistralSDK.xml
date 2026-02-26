@@ -20,6 +20,11 @@
             <exception cref="T:System.ArgumentNullException">Thrown when the request is null.</exception>
             <exception cref="T:MistralSDK.Exceptions.MistralApiException">Thrown when the API returns an error.</exception>
         </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.ChatCompletionAsync(System.String,System.String,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>
+            Chat completion (convenience overload). Uses default model.
+            </summary>
+        </member>
         <member name="M:MistralSDK.Abstractions.IMistralClient.ChatCompletionStreamAsync(MistralSDK.ChatCompletion.ChatCompletionRequest,System.Threading.CancellationToken)">
             <summary>
             Sends a streaming chat completion request to the Mistral AI API.
@@ -48,6 +53,210 @@
             <param name="request">The request to validate.</param>
             <returns>A validation result indicating whether the request is valid.</returns>
         </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.EmbeddingsCreateAsync(MistralSDK.Embeddings.EmbeddingRequest,System.Threading.CancellationToken)">
+            <summary>
+            Creates embeddings for text. Use mistral-embed for text, codestral-embed for code.
+            </summary>
+            <param name="request">Embedding request.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns><see cref="T:MistralSDK.MistralResponse"/> with <see cref="T:MistralSDK.Embeddings.EmbeddingResponse"/> in Data when successful.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.EmbeddingsCreateAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Creates embeddings for a single text (convenience overload).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.EmbeddingsCreateAsync(System.String[],System.String,System.Threading.CancellationToken)">
+            <summary>
+            Creates embeddings for multiple texts (convenience overload).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.ModerationsCreateAsync(MistralSDK.Classifiers.ModerationRequest,System.Threading.CancellationToken)">
+            <summary>
+            Moderates text for safety (POST /v1/moderations).
+            </summary>
+            <returns><see cref="T:MistralSDK.MistralResponse"/> with <see cref="T:MistralSDK.Classifiers.ModerationResponse"/> in Data when successful.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.ModerateAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Moderates text (convenience overload).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.ChatModerationsCreateAsync(MistralSDK.Classifiers.ChatModerationRequest,System.Threading.CancellationToken)">
+            <summary>
+            Moderates chat messages (POST /v1/chat/moderations).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.ClassificationsCreateAsync(MistralSDK.Classifiers.ModerationRequest,System.Threading.CancellationToken)">
+            <summary>
+            Classifies text (POST /v1/classifications).
+            </summary>
+            <returns><see cref="T:MistralSDK.MistralResponse"/> with <see cref="T:MistralSDK.Classifiers.ClassificationResponse"/> in Data when successful.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.ChatClassificationsCreateAsync(MistralSDK.Classifiers.ChatClassificationRequest,System.Threading.CancellationToken)">
+            <summary>
+            Classifies chat (POST /v1/chat/classifications).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.AgentCompletionAsync(MistralSDK.Agents.AgentCompletionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Sends an agent completion request to the Mistral AI API.
+            Uses an agent ID instead of a model. See <see href="https://docs.mistral.ai/api/endpoint/agents"/>.
+            </summary>
+            <param name="request">The agent completion request.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns><see cref="T:MistralSDK.MistralResponse"/> with <see cref="T:MistralSDK.ChatCompletion.ChatCompletionResponse"/> in Data when successful.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.ModelsListAsync(System.Threading.CancellationToken)">
+            <summary>
+            Lists all models available to the user.
+            </summary>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>List of models.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.ModelsRetrieveAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Retrieves information about a specific model.
+            </summary>
+            <param name="modelId">The model ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Model card.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.ModelsDeleteAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Deletes a fine-tuned model.
+            </summary>
+            <param name="modelId">The model ID to delete.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Delete result.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.ModelsUpdateAsync(System.String,MistralSDK.Models.UpdateFTModelRequest,System.Threading.CancellationToken)">
+            <summary>
+            Updates a fine-tuned model's name or description.
+            </summary>
+            <param name="modelId">The model ID.</param>
+            <param name="request">Update request (name, description).</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Updated model card.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.ModelsArchiveAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Archives a fine-tuned model.
+            </summary>
+            <param name="modelId">The model ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Archive result.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.ModelsUnarchiveAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Unarchives a fine-tuned model.
+            </summary>
+            <param name="modelId">The model ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Unarchive result.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.FimCompletionAsync(MistralSDK.Fim.FimCompletionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Fill-in-the-Middle completion for code (Codestral). See <see href="https://docs.mistral.ai/api/endpoint/fim"/>.
+            </summary>
+            <param name="request">FIM request with prompt and optional suffix.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns><see cref="T:MistralSDK.MistralResponse"/> with <see cref="T:MistralSDK.ChatCompletion.ChatCompletionResponse"/> in Data when successful.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.FimCompletionAsync(System.String,System.String,System.Nullable{System.Int32},System.String,System.Threading.CancellationToken)">
+            <summary>
+            FIM completion (convenience overload).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.BatchJobsListAsync(System.Int32,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Lists batch jobs with optional filters.
+            </summary>
+            <param name="limit">Max jobs to return. Default 20.</param>
+            <param name="after">Cursor for pagination.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.BatchJobCreateAsync(MistralSDK.Batch.BatchJobCreateRequest,System.Threading.CancellationToken)">
+            <summary>
+            Creates a batch job.
+            </summary>
+            <param name="request">Batch job creation request.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.BatchJobGetAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Retrieves a batch job by ID.
+            </summary>
+            <param name="jobId">Batch job ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.BatchJobCancelAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Cancels a batch job.
+            </summary>
+            <param name="jobId">Batch job ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.BatchJobsListAllAsync(System.Threading.CancellationToken)">
+            <summary>
+            Lists all batch jobs (paginates automatically).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.BatchJobWaitUntilCompleteAsync(System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Waits until a batch job completes (success, failed, or cancelled).
+            </summary>
+            <param name="jobId">Batch job ID.</param>
+            <param name="pollIntervalMs">Interval between status checks. Default 5000.</param>
+            <param name="timeoutMs">Maximum wait time. Default 86400000 (24h).</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.FineTuningJobsListAsync(System.Int32,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Lists fine-tuning jobs with optional filters.
+            </summary>
+            <param name="limit">Max jobs to return. Default 20.</param>
+            <param name="after">Cursor for pagination.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.FineTuningJobCreateAsync(MistralSDK.FineTuning.FineTuningJobCreateRequest,System.Threading.CancellationToken)">
+            <summary>
+            Creates a fine-tuning job.
+            </summary>
+            <param name="request">Fine-tuning job creation request.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.FineTuningJobGetAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Retrieves a fine-tuning job by ID.
+            </summary>
+            <param name="jobId">Fine-tuning job ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.FineTuningJobCancelAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Cancels a fine-tuning job.
+            </summary>
+            <param name="jobId">Fine-tuning job ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.FineTuningJobStartAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Starts a fine-tuning job (when created with auto_start=false).
+            </summary>
+            <param name="jobId">Fine-tuning job ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.FineTuningJobsListAllAsync(System.Threading.CancellationToken)">
+            <summary>
+            Lists all fine-tuning jobs (paginates automatically).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.FineTuningJobWaitUntilCompleteAsync(System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Waits until a fine-tuning job completes (success, failed, or cancelled).
+            </summary>
+        </member>
         <member name="M:MistralSDK.Abstractions.IMistralClient.FilesListAsync(System.Threading.CancellationToken)">
             <summary>
             Lists files in the organization.
@@ -61,9 +270,14 @@
             </summary>
             <param name="fileStream">The file stream to upload.</param>
             <param name="fileName">The file name.</param>
-            <param name="purpose">Purpose: ocr, fine-tune, or batch.</param>
+            <param name="purpose">Purpose: ocr, fine-tune, batch, or audio. Use <see cref="T:MistralSDK.Files.FilePurpose"/> constants.</param>
             <param name="cancellationToken">Cancellation token.</param>
             <returns>The uploaded file info.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.FilesUploadAsync(System.IO.Stream,System.String,MistralSDK.Files.FilePurposeType,System.Threading.CancellationToken)">
+            <summary>
+            Uploads a file with typed purpose (convenience overload).
+            </summary>
         </member>
         <member name="M:MistralSDK.Abstractions.IMistralClient.FilesRetrieveAsync(System.String,System.Threading.CancellationToken)">
             <summary>
@@ -105,6 +319,17 @@
             <param name="request">The OCR request.</param>
             <param name="cancellationToken">Cancellation token.</param>
             <returns>OCR response with extracted text and structure.</returns>
+        </member>
+        <member name="M:MistralSDK.Abstractions.IMistralClient.OcrExtractTextAsync(System.IO.Stream,System.String,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            One-step OCR: uploads a file, runs OCR, and returns the extracted text.
+            Optionally deletes the file after processing.
+            </summary>
+            <param name="fileStream">The file stream (PDF or image).</param>
+            <param name="fileName">The file name (e.g. document.pdf, receipt.jpg).</param>
+            <param name="deleteAfter">If true, deletes the uploaded file after OCR. Default true.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The extracted text from all pages, or empty string on failure.</returns>
         </member>
         <member name="M:MistralSDK.Abstractions.IMistralClient.AudioTranscribeAsync(MistralSDK.Audio.AudioTranscriptionRequest,System.Threading.CancellationToken)">
             <summary>
@@ -156,6 +381,87 @@
             </summary>
             <param name="errors">The validation errors.</param>
             <returns>A failed validation result.</returns>
+        </member>
+        <member name="T:MistralSDK.Agents.AgentCompletionRequest">
+            <summary>
+            Request for agent completion from the Mistral AI API.
+            Uses an agent ID instead of a model. See <see href="https://docs.mistral.ai/api/endpoint/agents"/>.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Agents.AgentCompletionRequest.AgentId">
+            <summary>
+            The ID of the agent to use for this completion.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Agents.AgentCompletionRequest.Messages">
+            <summary>
+            The prompt(s) to generate completions for, encoded as a list of messages with role and content.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Agents.AgentCompletionRequest.MaxTokens">
+            <summary>
+            Maximum number of tokens to generate. Default varies by agent.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Agents.AgentCompletionRequest.Stream">
+            <summary>
+            Whether to stream the response. Default is false.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Agents.AgentCompletionRequest.Stop">
+            <summary>
+            Stop generation if this token (or one of these tokens) is detected.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Agents.AgentCompletionRequest.RandomSeed">
+            <summary>
+            Random seed for deterministic results.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Agents.AgentCompletionRequest.Metadata">
+            <summary>
+            Optional metadata to attach to the request.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Agents.AgentCompletionRequest.ResponseFormat">
+            <summary>
+            Response format (text, json_object, json_schema).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Agents.AgentCompletionRequest.Tools">
+            <summary>
+            Tools the agent may call.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Agents.AgentCompletionRequest.ToolChoice">
+            <summary>
+            Tool choice: "auto", "none", "required", or a specific tool.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Agents.AgentCompletionRequest.PresencePenalty">
+            <summary>
+            Presence penalty (0 to 2). Default 0.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Agents.AgentCompletionRequest.FrequencyPenalty">
+            <summary>
+            Frequency penalty (0 to 2). Default 0.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Agents.AgentCompletionRequest.N">
+            <summary>
+            Number of completions to return. Default 1.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Agents.AgentCompletionRequest.ParallelToolCalls">
+            <summary>
+            Whether to allow parallel tool calls. Default true.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Agents.AgentCompletionRequest.PromptMode">
+            <summary>
+            Prompt mode. Use "reasoning" for reasoning models.
+            </summary>
         </member>
         <member name="T:MistralSDK.Audio.AudioTranscriptionRequest">
             <summary>
@@ -253,6 +559,95 @@
         </member>
         <member name="T:MistralSDK.Audio.TranscriptionStreamEvents">
             <summary>SSE event wrapper for transcription stream.</summary>
+        </member>
+        <member name="T:MistralSDK.Batch.BatchJobCreateRequest">
+            <summary>
+            Request to create a batch job.
+            See <see href="https://docs.mistral.ai/api/endpoint/batch"/>.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Batch.BatchJobCreateRequest.Endpoint">
+            <summary>
+            API endpoint for batch inference (e.g. /v1/chat/completions, /v1/embeddings, /v1/fim/completions).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Batch.BatchJobCreateRequest.InputFiles">
+            <summary>
+            List of input file IDs (JSONL format). Alternative to Requests.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Batch.BatchJobCreateRequest.Requests">
+            <summary>
+            Inline requests. Alternative to InputFiles. Max 10000.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Batch.BatchJobCreateRequest.Model">
+            <summary>
+            Model for batch inference.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Batch.BatchJobCreateRequest.AgentId">
+            <summary>
+            Optional agent ID (deprecated agents API).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Batch.BatchJobCreateRequest.Metadata">
+            <summary>
+            Metadata to associate with the job.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Batch.BatchJobCreateRequest.TimeoutHours">
+            <summary>
+            Timeout in hours. Default 24.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Batch.BatchRequest">
+            <summary>
+            A single batch request.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Batch.BatchRequest.Body">
+            <summary>
+            Request body (e.g. { "max_tokens": 100, "messages": [...] } for chat).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Batch.BatchRequest.ForChat(System.String,System.Int32,System.String)">
+            <summary>
+            Creates a batch request for chat completion.
+            </summary>
+            <param name="userMessage">The user message content.</param>
+            <param name="maxTokens">Maximum tokens to generate. Default 100.</param>
+            <param name="customId">Optional custom ID for tracking.</param>
+        </member>
+        <member name="T:MistralSDK.Batch.BatchJobResponse">
+            <summary>
+            Batch job response.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Batch.BatchJobResponse.IsComplete">
+            <summary>
+            Indicates whether the job has reached a terminal state (success, failed, cancelled, or timeout).
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Batch.BatchError">
+            <summary>
+            Batch error.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Batch.BatchJobsListResponse">
+            <summary>
+            Batch jobs list response.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Batch.ApiEndpoints">
+            <summary>
+            API endpoint constants for batch.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Batch.BatchJobStatus">
+            <summary>
+            Batch job status.
+            </summary>
         </member>
         <member name="T:MistralSDK.Caching.IChatCompletionCache">
             <summary>
@@ -843,9 +1238,18 @@
         </member>
         <member name="P:MistralSDK.ChatCompletion.MessageRequest.Content">
             <summary>
-            Gets or sets the content of the message.
-            Required field that contains the actual text of the message.
+            Gets or sets the content of the message as a string.
+            For structured content (reasoning), use <see cref="P:MistralSDK.ChatCompletion.MessageRequest.ContentChunks"/>.
             </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.MessageRequest.ContentChunks">
+            <summary>
+            Gets or sets structured content chunks (for reasoning models).
+            When set, this is serialized as "content" instead of <see cref="P:MistralSDK.ChatCompletion.MessageRequest.Content"/>.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.MessageRequest.ContentRaw">
+            <summary>Raw content for JSON serialization. Use <see cref="P:MistralSDK.ChatCompletion.MessageRequest.Content"/> or <see cref="P:MistralSDK.ChatCompletion.MessageRequest.ContentChunks"/> in code.</summary>
         </member>
         <member name="P:MistralSDK.ChatCompletion.MessageRequest.Prefix">
             <summary>
@@ -878,12 +1282,20 @@
             <param name="role">The role to validate.</param>
             <returns>True if the role is valid; otherwise, false.</returns>
         </member>
+        <member name="M:MistralSDK.ChatCompletion.MessageRequest.HasContent">
+            <summary>Returns true if the message has content (string or chunks).</summary>
+        </member>
         <member name="M:MistralSDK.ChatCompletion.MessageRequest.System(System.String)">
             <summary>
             Creates a system message.
             </summary>
             <param name="content">The system instruction content.</param>
             <returns>A new MessageRequest with system role.</returns>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.MessageRequest.SystemWithChunks(System.Collections.Generic.List{MistralSDK.ChatCompletion.ContentChunk})">
+            <summary>
+            Creates a system message with structured content (e.g. for reasoning).
+            </summary>
         </member>
         <member name="M:MistralSDK.ChatCompletion.MessageRequest.User(System.String)">
             <summary>
@@ -977,6 +1389,16 @@
         <member name="F:MistralSDK.ChatCompletion.MistralModels.Nemo">
             <summary>
             Mistral Nemo - research model for specific use cases.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.MistralModels.MagistralSmall">
+            <summary>
+            Magistral Small - reasoning model for efficient chain-of-thought.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.ChatCompletion.MistralModels.MagistralMedium">
+            <summary>
+            Magistral Medium - reasoning model balancing performance and cost.
             </summary>
         </member>
         <member name="T:MistralSDK.ChatCompletion.MessageRoles">
@@ -1132,9 +1554,18 @@
         </member>
         <member name="P:MistralSDK.ChatCompletion.MessageResponse.Content">
             <summary>
-            Gets or sets the content of the message.
-            This is the actual text generated by the model.
+            Gets the content of the message as a string.
+            For reasoning models, returns the final answer (thinking excluded).
+            For raw chunks, use <see cref="P:MistralSDK.ChatCompletion.MessageResponse.ContentChunks"/>.
             </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.MessageResponse.ContentChunks">
+            <summary>
+            Gets the raw content chunks when the API returns structured content (reasoning).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.MessageResponse.ContentRaw">
+            <summary>Raw content (string or chunks). Set when building from code; populated from JSON when deserializing.</summary>
         </member>
         <member name="P:MistralSDK.ChatCompletion.MessageResponse.ToolCalls">
             <summary>
@@ -1212,6 +1643,120 @@
             <summary>
             The model made a tool call.
             </summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.ContentChunk">
+            <summary>
+            Base type for content chunks in messages (request and response).
+            Used for reasoning models where content can be text or thinking traces.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ContentChunk.Type">
+            <summary>Chunk type discriminator.</summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.TextChunk">
+            <summary>
+            A text content chunk.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.TextChunk.Text">
+            <summary>The text content.</summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.ThinkChunk">
+            <summary>
+            A thinking/reasoning chunk. Contains the model's reasoning traces.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ThinkChunk.Closed">
+            <summary>Whether the thinking chunk is closed. Used for prefixing.</summary>
+        </member>
+        <member name="P:MistralSDK.ChatCompletion.ThinkChunk.Thinking">
+            <summary>Nested chunks (typically TextChunk) with reasoning traces.</summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.ContentChunkBuilder">
+            <summary>
+            Helper to build content chunks for reasoning messages.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.ContentChunkBuilder.Text(System.String)">
+            <summary>Creates a text chunk.</summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.ContentChunkBuilder.Thinking(System.String,System.Boolean)">
+            <summary>Creates a thinking chunk with inner text.</summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.ContentChunkBuilder.Thinking(System.Collections.Generic.List{MistralSDK.ChatCompletion.ContentChunk},System.Boolean)">
+            <summary>Creates a thinking chunk with inner chunks.</summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.ContentChunkBuilder.ExtractAllText(System.Collections.Generic.IEnumerable{MistralSDK.ChatCompletion.ContentChunk})">
+            <summary>
+            Extracts all text from content chunks (text chunks and text inside thinking).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.ContentChunkBuilder.ExtractAnswerText(System.Collections.Generic.IEnumerable{MistralSDK.ChatCompletion.ContentChunk})">
+            <summary>
+            Extracts only the final answer text (skips thinking chunks).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.ContentChunkBuilder.ExtractThinkingText(System.Collections.Generic.IEnumerable{MistralSDK.ChatCompletion.ContentChunk})">
+            <summary>
+            Extracts only the thinking/reasoning text.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.MessageContentConverter">
+            <summary>
+            JSON converter for message content that can be either a string or an array of content chunks.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.MessageContentConverter.Read(System.Text.Json.Utf8JsonReader@,System.Type,System.Text.Json.JsonSerializerOptions)">
+            <inheritdoc />
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.MessageContentConverter.Write(System.Text.Json.Utf8JsonWriter,System.Object,System.Text.Json.JsonSerializerOptions)">
+            <inheritdoc />
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.MessageContentExtensions">
+            <summary>
+            Extension methods for extracting text from message content (string or content chunks).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.MessageContentExtensions.GetContentText(System.Object)">
+            <summary>
+            Extracts the display text from content (string or chunks).
+            For reasoning responses, returns the final answer text (skips thinking chunks).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.MessageContentExtensions.GetAllContentText(System.Object)">
+            <summary>
+            Extracts all text including reasoning traces.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.MessageContentExtensions.GetThinkingText(System.Object)">
+            <summary>
+            Extracts only the thinking/reasoning text from content chunks.
+            Returns null if content is a simple string.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.MessageContentExtensions.GetContentChunks(System.Object)">
+            <summary>
+            Gets content as chunks if structured; otherwise null.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.ChatCompletion.ReasoningHelper">
+            <summary>
+            Helpers for reasoning models (Magistral).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.ReasoningHelper.DefaultReasoningSystemPrompt">
+            <summary>
+            Default system prompt for reasoning models (recommended by Mistral).
+            Instructs the model to draft thinking before the final answer.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.ChatCompletion.ReasoningHelper.CreateReasoningRequest(System.String,System.String,System.Boolean)">
+            <summary>
+            Creates a chat completion request for reasoning with the default system prompt.
+            </summary>
+            <param name="model">Reasoning model (e.g. MistralModels.MagistralMedium).</param>
+            <param name="userMessage">The user's question or task.</param>
+            <param name="useDefaultPrompt">If true, adds the default reasoning system prompt. Default is true.</param>
         </member>
         <member name="T:MistralSDK.ChatCompletion.StreamingChatCompletionChunk">
             <summary>
@@ -1342,6 +1887,92 @@
             Gets the number of chunks received.
             </summary>
         </member>
+        <member name="T:MistralSDK.Classifiers.ModerationRequest">
+            <summary>
+            Request for moderation (POST /v1/moderations) or classification (POST /v1/classifications).
+            Text to classify - single string or array of strings.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Classifiers.ModerationRequest.Model">
+            <summary>
+            Model to use (e.g. mistral-moderation-latest).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Classifiers.ModerationRequest.Input">
+            <summary>
+            Text to moderate. Single string or array of strings.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Classifiers.ModerationRequest.Metadata">
+            <summary>
+            Optional metadata.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Classifiers.ChatModerationRequest">
+            <summary>
+            Request for chat moderation (POST /v1/chat/moderations).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Classifiers.ChatModerationRequest.Input">
+            <summary>
+            Chat messages to moderate. Array of messages or array of arrays.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Classifiers.ChatClassificationRequest">
+            <summary>
+            Request for chat classification (POST /v1/chat/classifications).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Classifiers.ChatClassificationRequest.Input">
+            <summary>
+            Chat to classify. InstructRequest (messages) or array of InstructRequest.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Classifiers.InstructRequest">
+            <summary>
+            Instruct request - messages for chat classification.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Classifiers.ModerationModels">
+            <summary>
+            Moderation model constants.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Classifiers.ModerationResponse">
+            <summary>
+            Response from moderation endpoints (POST /v1/moderations, POST /v1/chat/moderations).
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Classifiers.ModerationResult">
+            <summary>
+            Moderation result for a single input.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Classifiers.ModerationResult.Categories">
+            <summary>
+            Category flags (sexual, hate_and_discrimination, violence_and_threats, etc.).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Classifiers.ModerationResult.CategoryScores">
+            <summary>
+            Category scores (0-1).
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Classifiers.ClassificationResponse">
+            <summary>
+            Response from classification endpoints (POST /v1/classifications, POST /v1/chat/classifications).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Classifiers.ClassificationResponse.Results">
+            <summary>
+            Classification results. Each item is a map of target name to scores.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Classifiers.ClassificationTargetResult">
+            <summary>
+            Classification target result with scores.
+            </summary>
+        </member>
         <member name="T:MistralSDK.Configuration.MistralClientOptions">
             <summary>
             Configuration options for the Mistral AI client.
@@ -1415,6 +2046,152 @@
             Validates the options and throws if invalid.
             </summary>
             <exception cref="T:System.ArgumentException">Thrown when the options are invalid.</exception>
+        </member>
+        <member name="T:MistralSDK.Conversation.ChatSession">
+            <summary>
+            Manages conversation history and provides a simple API for multi-turn chat.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Conversation.ChatSession.SystemPrompt">
+            <summary>
+            Gets or sets the optional system prompt. When set, it is prepended to the conversation.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Conversation.ChatSession.Messages">
+            <summary>
+            Gets the current message history (read-only).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Conversation.ChatSession.#ctor(MistralSDK.Abstractions.IMistralClient,System.String,System.Nullable{System.Int32},System.Nullable{System.Double})">
+            <summary>
+            Creates a new chat session.
+            </summary>
+            <param name="client">The Mistral client.</param>
+            <param name="model">Model to use (default: mistral-small-latest).</param>
+            <param name="maxTokens">Maximum tokens per response.</param>
+            <param name="temperature">Sampling temperature.</param>
+        </member>
+        <member name="M:MistralSDK.Conversation.ChatSession.AddUser(System.String)">
+            <summary>
+            Adds a user message to the conversation.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Conversation.ChatSession.AddAssistant(System.String)">
+            <summary>
+            Adds an assistant message to the conversation (e.g. after receiving a response).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Conversation.ChatSession.AddSystem(System.String)">
+            <summary>
+            Adds a system message. Typically used when SystemPrompt is not set.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Conversation.ChatSession.CompleteAsync(System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Sends the current conversation to the API and returns the assistant's reply.
+            Automatically adds the assistant response to history when successful.
+            </summary>
+            <param name="addToHistory">Whether to add the assistant reply to history. Default true.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The assistant's reply text, or empty string on failure.</returns>
+        </member>
+        <member name="M:MistralSDK.Conversation.ChatSession.CompleteStreamAsync(System.Threading.CancellationToken)">
+            <summary>
+            Sends the current conversation and streams the response.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Conversation.ChatSession.Clear(System.Boolean)">
+            <summary>
+            Clears the conversation history (optionally keeps the system prompt).
+            </summary>
+            <param name="keepSystemPrompt">If true and SystemPrompt is set, keeps the system message.</param>
+        </member>
+        <member name="M:MistralSDK.Conversation.ChatSession.BuildRequest">
+            <summary>
+            Builds the chat completion request from current messages.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Embeddings.EmbeddingRequest">
+            <summary>
+            Request for the Mistral Embeddings API.
+            See <see href="https://docs.mistral.ai/api/endpoint/embeddings"/>.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Embeddings.EmbeddingRequest.Model">
+            <summary>
+            The embedding model to use (e.g. mistral-embed, codestral-embed).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Embeddings.EmbeddingRequest.Input">
+            <summary>
+            Text to embed. Can be a single string or array of strings for batch processing.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Embeddings.EmbeddingRequest.EncodingFormat">
+            <summary>
+            Output format: "float" or "base64". Default "float".
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Embeddings.EmbeddingRequest.OutputDimension">
+            <summary>
+            Output dimension (codestral-embed: default 1536, max 3072).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Embeddings.EmbeddingRequest.OutputDtype">
+            <summary>
+            Output dtype: "float", "int8", "uint8", "binary", "ubinary". Default "float".
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Embeddings.EmbeddingRequest.Metadata">
+            <summary>
+            Optional metadata.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Embeddings.EmbeddingRequest.WithDimension(System.Int32)">
+            <summary>Sets the output dimension (codestral-embed).</summary>
+        </member>
+        <member name="M:MistralSDK.Embeddings.EmbeddingRequest.ForCode">
+            <summary>Configures for code embeddings (codestral-embed).</summary>
+        </member>
+        <member name="M:MistralSDK.Embeddings.EmbeddingRequest.WithOutputDtype(System.String)">
+            <summary>Sets the output dtype (float, int8, uint8, etc.).</summary>
+        </member>
+        <member name="T:MistralSDK.Embeddings.EmbeddingModels">
+            <summary>
+            Embedding model constants.
+            </summary>
+        </member>
+        <member name="F:MistralSDK.Embeddings.EmbeddingModels.MistralEmbed">
+            <summary>Text embeddings - general purpose.</summary>
+        </member>
+        <member name="F:MistralSDK.Embeddings.EmbeddingModels.CodestralEmbed">
+            <summary>Code embeddings - for code search and retrieval.</summary>
+        </member>
+        <member name="T:MistralSDK.Embeddings.EmbeddingEncodingFormat">
+            <summary>
+            Output format for embeddings.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Embeddings.EmbeddingDtype">
+            <summary>
+            Output dtype for embeddings (codestral-embed).
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Embeddings.EmbeddingResponse">
+            <summary>
+            Response from the Embeddings API.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Embeddings.EmbeddingResponse.GetFirstVector">
+            <summary>Gets the first embedding vector, or empty list if none.</summary>
+        </member>
+        <member name="M:MistralSDK.Embeddings.EmbeddingResponse.GetVector(System.Int32)">
+            <summary>Gets the embedding vector at the specified index.</summary>
+        </member>
+        <member name="T:MistralSDK.Embeddings.EmbeddingData">
+            <summary>
+            A single embedding result.
+            </summary>
         </member>
         <member name="T:MistralSDK.Examples.SimpleExample">
             <summary>
@@ -1723,7 +2500,7 @@
         </member>
         <member name="T:MistralSDK.Files.FilePurpose">
             <summary>
-            Purpose for uploaded files.
+            Purpose for uploaded files (string constants for API).
             </summary>
         </member>
         <member name="F:MistralSDK.Files.FilePurpose.FineTune">
@@ -1737,6 +2514,259 @@
         </member>
         <member name="F:MistralSDK.Files.FilePurpose.Audio">
             <summary>For audio transcription.</summary>
+        </member>
+        <member name="T:MistralSDK.Files.FilePurposeType">
+            <summary>
+            Typed file purpose for type-safe overloads.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Files.FilePurposeTypeExtensions">
+            <summary>
+            Extensions for FilePurposeType.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Files.FilePurposeTypeExtensions.ToApiString(MistralSDK.Files.FilePurposeType)">
+            <summary>Gets the API string value for the purpose.</summary>
+        </member>
+        <member name="T:MistralSDK.Fim.FimCompletionRequest">
+            <summary>
+            Request for Fill-in-the-Middle (FIM) completion.
+            Used for code completion with Codestral. See <see href="https://docs.mistral.ai/api/endpoint/fim"/>.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Fim.FimCompletionRequest.Model">
+            <summary>
+            Model with FIM support (e.g. codestral-latest).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Fim.FimCompletionRequest.Prompt">
+            <summary>
+            The text/code to complete (prefix).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Fim.FimCompletionRequest.Suffix">
+            <summary>
+            Optional suffix. When given prompt and suffix, the model fills what is between them.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Fim.FimCompletionRequest.Temperature">
+            <summary>
+            Sampling temperature (0-1.5). Default varies by model.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Fim.FimCompletionRequest.TopP">
+            <summary>
+            Top-p nucleus sampling (0-1). Default 1.0.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Fim.FimCompletionRequest.MaxTokens">
+            <summary>
+            Maximum tokens to generate.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Fim.FimCompletionRequest.MinTokens">
+            <summary>
+            Minimum tokens to generate.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Fim.FimCompletionRequest.Stream">
+            <summary>
+            Whether to stream the response. Default false.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Fim.FimCompletionRequest.Stop">
+            <summary>
+            Stop sequences.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Fim.FimCompletionRequest.RandomSeed">
+            <summary>
+            Random seed for deterministic results.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Fim.FimCompletionRequest.Metadata">
+            <summary>
+            Optional metadata.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Fim.FimCompletionRequest.WithSuffix(System.String)">
+            <summary>Sets the suffix for fill-in-the-middle.</summary>
+        </member>
+        <member name="M:MistralSDK.Fim.FimCompletionRequest.WithMaxTokens(System.Int32)">
+            <summary>Sets the maximum tokens to generate.</summary>
+        </member>
+        <member name="M:MistralSDK.Fim.FimCompletionRequest.WithStop(System.String)">
+            <summary>Sets a single stop sequence.</summary>
+        </member>
+        <member name="M:MistralSDK.Fim.FimCompletionRequest.WithStops(System.String[])">
+            <summary>Sets multiple stop sequences.</summary>
+        </member>
+        <member name="T:MistralSDK.Fim.FimModels">
+            <summary>
+            FIM model constants.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.FineTuning.FineTuningJobCreateRequest">
+            <summary>
+            Request to create a fine-tuning job.
+            See <see href="https://docs.mistral.ai/api/endpoint/fine-tuning"/>.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.FineTuning.FineTuningJobCreateRequest.Model">
+            <summary>
+            Base model to fine-tune (e.g. open-mistral-7b, mistral-small-latest).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.FineTuning.FineTuningJobCreateRequest.TrainingFiles">
+            <summary>
+            Training files with optional weights.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.FineTuning.FineTuningJobCreateRequest.ValidationFiles">
+            <summary>
+            Optional validation file IDs.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.FineTuning.FineTuningJobCreateRequest.Hyperparameters">
+            <summary>
+            Hyperparameters for training.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.FineTuning.FineTuningJobCreateRequest.Suffix">
+            <summary>
+            Suffix for the fine-tuned model name (max 18 chars).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.FineTuning.FineTuningJobCreateRequest.AutoStart">
+            <summary>
+            Whether to auto-start the job. Default true.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.FineTuning.FineTuningJobCreateRequest.JobType">
+            <summary>
+            Job type: completion or classifier.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.FineTuning.TrainingFile">
+            <summary>
+            Training file with optional weight.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.FineTuning.TrainingFile.From(System.String,System.Double)">
+            <summary>
+            Creates a training file reference.
+            </summary>
+            <param name="fileId">The file ID from Files API.</param>
+            <param name="weight">Weight for the file. Default 1.0.</param>
+        </member>
+        <member name="T:MistralSDK.FineTuning.CompletionTrainingParameters">
+            <summary>
+            Completion fine-tuning hyperparameters.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.FineTuning.FineTuningJobResponse">
+            <summary>
+            Fine-tuning job response.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.FineTuning.FineTuningJobResponse.IsComplete">
+            <summary>
+            Indicates whether the job has reached a terminal state (success, failed, or cancelled).
+            </summary>
+        </member>
+        <member name="T:MistralSDK.FineTuning.FineTuningJobsListResponse">
+            <summary>
+            Fine-tuning jobs list response.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.FineTuning.FineTuneableModels">
+            <summary>
+            Fine-tuneable model constants.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.FineTuning.FineTuningJobStatus">
+            <summary>
+            Fine-tuning job status.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Helpers.ChatContextBuilder">
+            <summary>
+            Fluent builder for constructing chat completion requests with document context.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Helpers.ChatContextBuilder.Create">
+            <summary>
+            Creates a new chat context builder.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Helpers.ChatContextBuilder.WithDocument(System.String,System.String)">
+            <summary>
+            Sets the document content (e.g. from OCR) and optional instruction for how to use it.
+            </summary>
+            <param name="documentContent">The document text.</param>
+            <param name="instruction">Optional instruction, e.g. "Answer only from this document."</param>
+        </member>
+        <member name="M:MistralSDK.Helpers.ChatContextBuilder.WithInstruction(System.String)">
+            <summary>
+            Sets an additional system instruction (e.g. "Be concise.", "Respond in French.").
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Helpers.ChatContextBuilder.WithUserQuestion(System.String)">
+            <summary>
+            Sets the user question.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Helpers.ChatContextBuilder.WithModel(System.String)">
+            <summary>
+            Sets the model to use.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Helpers.ChatContextBuilder.WithMaxTokens(System.Int32)">
+            <summary>
+            Sets the maximum tokens per response.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Helpers.ChatContextBuilder.WithTemperature(System.Double)">
+            <summary>
+            Sets the temperature.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Helpers.ChatContextBuilder.Build">
+            <summary>
+            Builds the chat completion request.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Helpers.ConversationHelper">
+            <summary>
+            Helpers for managing conversation context and history.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Helpers.ConversationHelper.TrimToLastMessages(System.Collections.Generic.IReadOnlyList{MistralSDK.ChatCompletion.MessageRequest},System.Int32)">
+            <summary>
+            Trims the message list to keep only the system message (if any) and the last N user/assistant exchanges.
+            Useful when the conversation exceeds the context window.
+            </summary>
+            <param name="messages">The full message list.</param>
+            <param name="maxExchanges">Maximum number of user/assistant turns to keep. Default 10.</param>
+            <returns>A new list with trimmed messages.</returns>
+        </member>
+        <member name="M:MistralSDK.Helpers.ConversationHelper.TrimToLastN(System.Collections.Generic.IReadOnlyList{MistralSDK.ChatCompletion.MessageRequest},System.Int32)">
+            <summary>
+            Keeps the last N messages (including system), removing older ones from the start.
+            </summary>
+            <param name="messages">The full message list.</param>
+            <param name="maxMessages">Maximum total messages to keep. Default 20.</param>
+            <returns>A new list with trimmed messages.</returns>
+        </member>
+        <member name="M:MistralSDK.Helpers.ConversationHelper.GetLastAssistantMessage(System.Collections.Generic.IReadOnlyList{MistralSDK.ChatCompletion.MessageRequest})">
+            <summary>
+            Extracts the last assistant message from the conversation.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Helpers.ConversationHelper.GetLastUserMessage(System.Collections.Generic.IReadOnlyList{MistralSDK.ChatCompletion.MessageRequest})">
+            <summary>
+            Extracts the last user message from the conversation.
+            </summary>
         </member>
         <member name="T:MistralSDK.MistralClient">
             <summary>
@@ -1836,6 +2866,9 @@
             <exception cref="T:MistralSDK.Exceptions.MistralValidationException">Thrown when request validation fails (if ValidateRequests is enabled).</exception>
             <exception cref="T:MistralSDK.Exceptions.MistralApiException">Thrown when the API returns an error (if ThrowOnError is enabled).</exception>
         </member>
+        <member name="M:MistralSDK.MistralClient.ChatCompletionAsync(System.String,System.String,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="M:MistralSDK.MistralClient.ChatCompletionStreamAsync(MistralSDK.ChatCompletion.ChatCompletionRequest,System.Threading.CancellationToken)">
             <summary>
             Sends a streaming chat completion request to the Mistral AI API.
@@ -1866,10 +2899,103 @@
             <param name="jsonResponse">The JSON response body from the API.</param>
             <returns>A <see cref="T:MistralSDK.MistralResponse"/> object with parsed content or error information.</returns>
         </member>
+        <member name="M:MistralSDK.MistralClient.EmbeddingsCreateAsync(MistralSDK.Embeddings.EmbeddingRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.EmbeddingsCreateAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.EmbeddingsCreateAsync(System.String[],System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.ModerationsCreateAsync(MistralSDK.Classifiers.ModerationRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.ModerateAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.ChatModerationsCreateAsync(MistralSDK.Classifiers.ChatModerationRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.ClassificationsCreateAsync(MistralSDK.Classifiers.ModerationRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.ChatClassificationsCreateAsync(MistralSDK.Classifiers.ChatClassificationRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.AgentCompletionAsync(MistralSDK.Agents.AgentCompletionRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.FimCompletionAsync(MistralSDK.Fim.FimCompletionRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.FimCompletionAsync(System.String,System.String,System.Nullable{System.Int32},System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.BatchJobsListAsync(System.Int32,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.BatchJobCreateAsync(MistralSDK.Batch.BatchJobCreateRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.BatchJobGetAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.BatchJobCancelAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.BatchJobsListAllAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.BatchJobWaitUntilCompleteAsync(System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.FineTuningJobsListAsync(System.Int32,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.FineTuningJobCreateAsync(MistralSDK.FineTuning.FineTuningJobCreateRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.FineTuningJobGetAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.FineTuningJobCancelAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.FineTuningJobStartAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.FineTuningJobsListAllAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.FineTuningJobWaitUntilCompleteAsync(System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.ModelsListAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.ModelsRetrieveAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.ModelsDeleteAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.ModelsUpdateAsync(System.String,MistralSDK.Models.UpdateFTModelRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.ModelsArchiveAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.ModelsUnarchiveAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="M:MistralSDK.MistralClient.FilesListAsync(System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="M:MistralSDK.MistralClient.FilesUploadAsync(System.IO.Stream,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.FilesUploadAsync(System.IO.Stream,System.String,MistralSDK.Files.FilePurposeType,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="M:MistralSDK.MistralClient.FilesRetrieveAsync(System.String,System.Threading.CancellationToken)">
@@ -1885,6 +3011,9 @@
             <inheritdoc/>
         </member>
         <member name="M:MistralSDK.MistralClient.OcrProcessAsync(MistralSDK.Ocr.OcrRequest,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MistralSDK.MistralClient.OcrExtractTextAsync(System.IO.Stream,System.String,System.Boolean,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="M:MistralSDK.MistralClient.AudioTranscribeAsync(MistralSDK.Audio.AudioTranscriptionRequest,System.Threading.CancellationToken)">
@@ -1912,6 +3041,7 @@
         <member name="T:MistralSDK.MistralResponse">
             <summary>
             Represents a standardized response from the Mistral AI API.
+            All API methods return this type. Use <see cref="P:MistralSDK.MistralResponse.Data"/> for the strongly-typed response when <see cref="P:MistralSDK.MistralResponse.IsSuccess"/> is true.
             </summary>
         </member>
         <member name="P:MistralSDK.MistralResponse.StatusCode">
@@ -1922,7 +3052,7 @@
         <member name="P:MistralSDK.MistralResponse.Message">
             <summary>
             Gets or sets the message content from the API response.
-            For successful requests, this contains the generated text.
+            For successful chat/FIM requests, this contains the generated text.
             For errors, this contains the error message.
             </summary>
         </member>
@@ -1933,12 +3063,23 @@
         </member>
         <member name="P:MistralSDK.MistralResponse.Model">
             <summary>
-            Gets or sets the model used for the completion (only available for successful responses).
+            Gets or sets the model used (only available for successful completion responses).
             </summary>
         </member>
         <member name="P:MistralSDK.MistralResponse.Usage">
             <summary>
-            Gets or sets the usage information from the API response (only available for successful responses).
+            Gets or sets the usage information (only available for successful completion responses).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.MistralResponse.Data">
+            <summary>
+            Gets or sets the strongly-typed response data when <see cref="P:MistralSDK.MistralResponse.IsSuccess"/> is true.
+            Cast to the appropriate type: <see cref="T:MistralSDK.ChatCompletion.ChatCompletionResponse"/>, <see cref="T:MistralSDK.Embeddings.EmbeddingResponse"/>, <see cref="T:MistralSDK.Classifiers.ModerationResponse"/>, etc.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.MistralResponse.GetData``1">
+            <summary>
+            Gets the response data as the specified type. Returns null if Data is null or not of type T.
             </summary>
         </member>
         <member name="M:MistralSDK.MistralResponse.#ctor(System.Int32)">
@@ -1946,6 +3087,50 @@
             Initializes a new instance of the <see cref="T:MistralSDK.MistralResponse"/> class.
             </summary>
             <param name="statusCode">The HTTP status code of the response.</param>
+        </member>
+        <member name="T:MistralSDK.Models.ArchiveFTModelResponse">
+            <summary>
+            Response from POST /v1/fine_tuning/models/{model_id}/archive.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Models.UnarchiveFTModelResponse">
+            <summary>
+            Response from DELETE /v1/fine_tuning/models/{model_id}/archive.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Models.ModelCapabilities">
+            <summary>
+            Capabilities of a Mistral model.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Models.ModelCard">
+            <summary>
+            Represents a Mistral model (base or fine-tuned).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Models.ModelCard.Job">
+            <summary>Fine-tuned model: job ID.</summary>
+        </member>
+        <member name="P:MistralSDK.Models.ModelCard.Root">
+            <summary>Fine-tuned model: root model.</summary>
+        </member>
+        <member name="P:MistralSDK.Models.ModelCard.Archived">
+            <summary>Fine-tuned model: archived status.</summary>
+        </member>
+        <member name="T:MistralSDK.Models.ModelDeleteResponse">
+            <summary>
+            Response from DELETE /v1/models/{model_id}.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Models.ModelListResponse">
+            <summary>
+            Response from GET /v1/models - list of available models.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Models.UpdateFTModelRequest">
+            <summary>
+            Request body for PATCH /v1/fine_tuning/models/{model_id}.
+            </summary>
         </member>
         <member name="T:MistralSDK.Ocr.OcrDocument">
             <summary>
@@ -2106,6 +3291,112 @@
         <member name="T:MistralSDK.Ocr.OcrUsageInfo">
             <summary>
             OCR usage information.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Workflows.DocumentQa">
+            <summary>
+            Document Q&amp;A workflow: loads a document via OCR, then answers questions with conversation history.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Workflows.DocumentQa.DocumentText">
+            <summary>
+            Gets the extracted document text (empty until LoadDocumentAsync is called).
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Workflows.DocumentQa.IsLoaded">
+            <summary>
+            Gets whether a document has been loaded.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Workflows.DocumentQa.#ctor(MistralSDK.Abstractions.IMistralClient,System.String,System.String)">
+            <summary>
+            Creates a new DocumentQa workflow.
+            </summary>
+            <param name="client">The Mistral client.</param>
+            <param name="chatModel">Model for Q&amp;A. Default mistral-small-latest.</param>
+            <param name="ocrModel">Model for OCR. Default mistral-ocr-latest.</param>
+        </member>
+        <member name="M:MistralSDK.Workflows.DocumentQa.LoadDocumentAsync(System.IO.Stream,System.String,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Loads a document from a stream (PDF or image) and extracts text via OCR.
+            </summary>
+            <param name="fileStream">The document stream.</param>
+            <param name="fileName">The file name (e.g. document.pdf).</param>
+            <param name="deleteFileAfterOcr">If true, deletes the uploaded file after OCR. Default true.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:MistralSDK.Workflows.DocumentQa.LoadDocumentText(System.String)">
+            <summary>
+            Loads document text directly (e.g. from a previous OCR or plain text file).
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Workflows.DocumentQa.AskAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Asks a question about the document. Keeps conversation history for follow-up questions.
+            </summary>
+            <param name="question">The user question.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The assistant's answer.</returns>
+        </member>
+        <member name="M:MistralSDK.Workflows.DocumentQa.ClearHistory">
+            <summary>
+            Clears the conversation history. The document remains loaded.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Workflows.DocumentQa.Reset">
+            <summary>
+            Resets the workflow: clears document and history.
+            </summary>
+        </member>
+        <member name="T:MistralSDK.Workflows.SimpleRag">
+            <summary>
+            Simple RAG workflow: add documents, embed them, then ask questions with retrieved context.
+            </summary>
+        </member>
+        <member name="P:MistralSDK.Workflows.SimpleRag.ChunkCount">
+            <summary>
+            Gets the number of chunks currently stored.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Workflows.SimpleRag.#ctor(MistralSDK.Abstractions.IMistralClient,System.String,System.String)">
+            <summary>
+            Creates a new SimpleRag workflow.
+            </summary>
+            <param name="client">The Mistral client.</param>
+            <param name="embedModel">Embedding model. Default mistral-embed.</param>
+            <param name="chatModel">Chat model for answers. Default mistral-small-latest.</param>
+        </member>
+        <member name="M:MistralSDK.Workflows.SimpleRag.AddChunk(System.String,System.String)">
+            <summary>
+            Adds a text chunk. Call AddDocumentsAsync to embed and index.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Workflows.SimpleRag.AddDocument(System.String,System.String,System.Boolean,System.Int32)">
+            <summary>
+            Adds multiple chunks from a document, optionally split by paragraph or fixed size.
+            </summary>
+            <param name="document">The full document text.</param>
+            <param name="sourceId">Optional source identifier.</param>
+            <param name="splitByParagraphs">If true, splits by double newlines. Otherwise uses fixed chunk size.</param>
+            <param name="chunkSize">When not splitting by paragraphs, max chars per chunk. Default 500.</param>
+        </member>
+        <member name="M:MistralSDK.Workflows.SimpleRag.IndexAsync(System.Threading.CancellationToken)">
+            <summary>
+            Embeds all chunks. Call this after adding documents and before AskAsync.
+            </summary>
+        </member>
+        <member name="M:MistralSDK.Workflows.SimpleRag.AskAsync(System.String,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Asks a question using retrieved context from the indexed documents.
+            </summary>
+            <param name="question">The user question.</param>
+            <param name="topK">Number of chunks to retrieve. Default 5.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The assistant's answer.</returns>
+        </member>
+        <member name="M:MistralSDK.Workflows.SimpleRag.Clear">
+            <summary>
+            Clears all chunks and embeddings.
             </summary>
         </member>
     </members>

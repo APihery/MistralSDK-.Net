@@ -28,6 +28,8 @@ else
 | `Message` | `string` | Response content or error message |
 | `Model` | `string?` | Model used (success only) |
 | `Usage` | `UsageInfo?` | Token usage (success only) |
+| `Data` | `object?` | Strongly-typed response when success (e.g. `ChatCompletionResponse`) |
+| `GetData<T>()` | `T?` | Returns `Data` cast to type `T` |
 
 ### Common Status Codes
 

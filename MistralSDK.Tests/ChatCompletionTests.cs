@@ -955,6 +955,29 @@ namespace MistralSDK.Tests
             }
         }
 
+        /// <summary>
+        /// Tests reasoning with Magistral model.
+        /// </summary>
+        [TestMethod]
+        [TestCategory("Integration")]
+        public async Task ChatCompletion_ReasoningWithMagistral_ReturnsResponse()
+        {
+            SkipIfIntegrationTestsDisabled();
+
+            var request = ReasoningHelper.CreateReasoningRequest(
+                MistralModels.MagistralMedium,
+                "What is 15 + 27? Answer with just the number.",
+                useDefaultPrompt: true);
+            request.MaxTokens = 200;
+
+            var response = await _client!.ChatCompletionAsync(request);
+
+            Assert.IsNotNull(response);
+            Assert.IsTrue(response.IsSuccess, $"Expected success, got: {response.Message}");
+            Assert.IsFalse(string.IsNullOrWhiteSpace(response.Message));
+            TestContext.WriteLine($"Answer: {response.Message}");
+        }
+
         #endregion
     }
 }

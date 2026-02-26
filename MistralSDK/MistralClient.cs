@@ -1,9 +1,16 @@
 using MistralSDK.Abstractions;
+using MistralSDK.Agents;
 using MistralSDK.Audio;
+using MistralSDK.Batch;
 using MistralSDK.ChatCompletion;
+using MistralSDK.Classifiers;
 using MistralSDK.Configuration;
+using MistralSDK.Embeddings;
 using MistralSDK.Exceptions;
 using MistralSDK.Files;
+using MistralSDK.Fim;
+using MistralSDK.FineTuning;
+using MistralSDK.Models;
 using MistralSDK.Ocr;
 using Microsoft.Extensions.Options;
 using System;
@@ -348,6 +355,18 @@ namespace MistralSDK
             }
         }
 
+        /// <inheritdoc/>
+        public Task<MistralResponse> ChatCompletionAsync(string userMessage, string? model = null, int? maxTokens = null, CancellationToken cancellationToken = default)
+        {
+            var request = new ChatCompletionRequest
+            {
+                Model = model ?? MistralModels.Small,
+                Messages = new List<MessageRequest> { MessageRequest.User(userMessage) },
+                MaxTokens = maxTokens
+            };
+            return ChatCompletionAsync(request, cancellationToken);
+        }
+
         /// <summary>
         /// Sends a streaming chat completion request to the Mistral AI API.
         /// Tokens are returned as they are generated via an async enumerable.
@@ -508,9 +527,10 @@ namespace MistralSDK
                 try
                 {
                     var successResponse = JsonSerializer.Deserialize<ChatCompletionResponse>(jsonResponse, _jsonOptions);
-                    if (successResponse?.Choices?.Count > 0)
+                    if (successResponse != null)
                     {
-                        response.Message = successResponse.Choices[0].Message?.Content ?? string.Empty;
+                        response.Data = successResponse;
+                        response.Message = successResponse.GetFirstChoiceContent();
                         response.IsSuccess = true;
                         response.Model = successResponse.Model;
                         response.Usage = successResponse.Usage;
@@ -561,6 +581,587 @@ namespace MistralSDK
             return response;
         }
 
+        #region Embeddings API
+
+        /// <inheritdoc/>
+        public async Task<MistralResponse> EmbeddingsCreateAsync(EmbeddingRequest request, CancellationToken cancellationToken = default)
+        {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+            if (string.IsNullOrWhiteSpace(request.Model))
+                throw new ArgumentException("Model is required.", nameof(request));
+            if (request.Input == null)
+                throw new ArgumentException("Input is required.", nameof(request));
+
+            var jsonRequest = JsonSerializer.Serialize(request, _jsonOptions);
+            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync(
+                $"{_options.BaseUrl}/embeddings",
+                content,
+                cancellationToken).ConfigureAwait(false);
+
+            var jsonResponse = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, jsonResponse, cancellationToken).ConfigureAwait(false);
+
+            var data = JsonSerializer.Deserialize<EmbeddingResponse>(jsonResponse, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize embedding response.");
+            return new MistralResponse((int)response.StatusCode)
+            {
+                IsSuccess = true,
+                Data = data,
+                Message = "OK",
+                Model = data.Model
+            };
+        }
+
+        /// <inheritdoc/>
+        public Task<MistralResponse> EmbeddingsCreateAsync(string text, string? model = null, CancellationToken cancellationToken = default)
+        {
+            var request = new EmbeddingRequest
+            {
+                Model = model ?? EmbeddingModels.MistralEmbed,
+                Input = text
+            };
+            return EmbeddingsCreateAsync(request, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public Task<MistralResponse> EmbeddingsCreateAsync(string[] texts, string? model = null, CancellationToken cancellationToken = default)
+        {
+            var request = new EmbeddingRequest
+            {
+                Model = model ?? EmbeddingModels.MistralEmbed,
+                Input = texts
+            };
+            return EmbeddingsCreateAsync(request, cancellationToken);
+        }
+
+        #endregion
+
+        #region Classifiers API
+
+        /// <inheritdoc/>
+        public async Task<MistralResponse> ModerationsCreateAsync(ModerationRequest request, CancellationToken cancellationToken = default)
+        {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+            var jsonRequest = JsonSerializer.Serialize(request, _jsonOptions);
+            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync($"{_options.BaseUrl}/moderations", content, cancellationToken).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+            var data = JsonSerializer.Deserialize<ModerationResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize moderation response.");
+            return new MistralResponse((int)response.StatusCode) { IsSuccess = true, Data = data, Message = "OK" };
+        }
+
+        /// <inheritdoc/>
+        public Task<MistralResponse> ModerateAsync(string text, string? model = null, CancellationToken cancellationToken = default)
+        {
+            var request = new ModerationRequest
+            {
+                Model = model ?? ModerationModels.MistralModerationLatest,
+                Input = text
+            };
+            return ModerationsCreateAsync(request, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public async Task<MistralResponse> ChatModerationsCreateAsync(ChatModerationRequest request, CancellationToken cancellationToken = default)
+        {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+            var jsonRequest = JsonSerializer.Serialize(request, _jsonOptions);
+            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync($"{_options.BaseUrl}/chat/moderations", content, cancellationToken).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+            var data = JsonSerializer.Deserialize<ModerationResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize moderation response.");
+            return new MistralResponse((int)response.StatusCode) { IsSuccess = true, Data = data, Message = "OK" };
+        }
+
+        /// <inheritdoc/>
+        public async Task<MistralResponse> ClassificationsCreateAsync(ModerationRequest request, CancellationToken cancellationToken = default)
+        {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+            var jsonRequest = JsonSerializer.Serialize(request, _jsonOptions);
+            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync($"{_options.BaseUrl}/classifications", content, cancellationToken).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+            var data = JsonSerializer.Deserialize<ClassificationResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize classification response.");
+            return new MistralResponse((int)response.StatusCode) { IsSuccess = true, Data = data, Message = "OK" };
+        }
+
+        /// <inheritdoc/>
+        public async Task<MistralResponse> ChatClassificationsCreateAsync(ChatClassificationRequest request, CancellationToken cancellationToken = default)
+        {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+            var jsonRequest = JsonSerializer.Serialize(request, _jsonOptions);
+            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync($"{_options.BaseUrl}/chat/classifications", content, cancellationToken).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+            var data = JsonSerializer.Deserialize<ClassificationResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize classification response.");
+            return new MistralResponse((int)response.StatusCode) { IsSuccess = true, Data = data, Message = "OK" };
+        }
+
+        #endregion
+
+        #region Agents API
+
+        /// <inheritdoc/>
+        public async Task<MistralResponse> AgentCompletionAsync(AgentCompletionRequest request, CancellationToken cancellationToken = default)
+        {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+            if (string.IsNullOrWhiteSpace(request.AgentId))
+                throw new ArgumentException("Agent ID is required.", nameof(request));
+            if (request.Messages == null || request.Messages.Count == 0)
+                throw new ArgumentException("At least one message is required.", nameof(request));
+
+            var jsonRequest = JsonSerializer.Serialize(request, _jsonOptions);
+            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync(
+                $"{_options.BaseUrl}/agents/completions",
+                content,
+                cancellationToken).ConfigureAwait(false);
+
+            var jsonResponse = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, jsonResponse, cancellationToken).ConfigureAwait(false);
+
+            var data = JsonSerializer.Deserialize<ChatCompletionResponse>(jsonResponse, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize agent completion response.");
+            return new MistralResponse((int)response.StatusCode)
+            {
+                IsSuccess = true,
+                Data = data,
+                Message = data.GetFirstChoiceContent(),
+                Model = data.Model,
+                Usage = data.Usage
+            };
+        }
+
+        #endregion
+
+        #region FIM API
+
+        /// <inheritdoc/>
+        public async Task<MistralResponse> FimCompletionAsync(FimCompletionRequest request, CancellationToken cancellationToken = default)
+        {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+            if (string.IsNullOrWhiteSpace(request.Model))
+                throw new ArgumentException("Model is required.", nameof(request));
+            if (string.IsNullOrWhiteSpace(request.Prompt))
+                throw new ArgumentException("Prompt is required.", nameof(request));
+
+            var jsonRequest = JsonSerializer.Serialize(request, _jsonOptions);
+            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync(
+                $"{_options.BaseUrl}/fim/completions",
+                content,
+                cancellationToken).ConfigureAwait(false);
+
+            var jsonResponse = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, jsonResponse, cancellationToken).ConfigureAwait(false);
+
+            var data = JsonSerializer.Deserialize<ChatCompletionResponse>(jsonResponse, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize FIM completion response.");
+            return new MistralResponse((int)response.StatusCode)
+            {
+                IsSuccess = true,
+                Data = data,
+                Message = data.GetFirstChoiceContent(),
+                Model = data.Model,
+                Usage = data.Usage
+            };
+        }
+
+        /// <inheritdoc/>
+        public Task<MistralResponse> FimCompletionAsync(string prompt, string? suffix = null, int? maxTokens = null, string? model = null, CancellationToken cancellationToken = default)
+        {
+            var request = new FimCompletionRequest
+            {
+                Model = model ?? FimModels.CodestralLatest,
+                Prompt = prompt,
+                Suffix = suffix,
+                MaxTokens = maxTokens
+            };
+            return FimCompletionAsync(request, cancellationToken);
+        }
+
+        #endregion
+
+        #region Batch API
+
+        /// <inheritdoc/>
+        public async Task<BatchJobsListResponse> BatchJobsListAsync(int limit = 20, string? after = null, CancellationToken cancellationToken = default)
+        {
+            var query = new List<string> { $"limit={limit}" };
+            if (!string.IsNullOrWhiteSpace(after))
+                query.Add($"after={Uri.EscapeDataString(after)}");
+            var url = $"{_options.BaseUrl}/batch/jobs?{string.Join("&", query)}";
+
+            var response = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<BatchJobsListResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize batch jobs list response.");
+        }
+
+        /// <inheritdoc/>
+        public async Task<BatchJobResponse> BatchJobCreateAsync(BatchJobCreateRequest request, CancellationToken cancellationToken = default)
+        {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+            if (string.IsNullOrWhiteSpace(request.Endpoint))
+                throw new ArgumentException("Endpoint is required.", nameof(request));
+            var hasInput = (request.InputFiles != null && request.InputFiles.Count > 0) || (request.Requests != null && request.Requests.Count > 0);
+            if (!hasInput)
+                throw new ArgumentException("Either InputFiles or Requests is required.", nameof(request));
+
+            var jsonRequest = JsonSerializer.Serialize(request, _jsonOptions);
+            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync(
+                $"{_options.BaseUrl}/batch/jobs",
+                content,
+                cancellationToken).ConfigureAwait(false);
+
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<BatchJobResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize batch job response.");
+        }
+
+        /// <inheritdoc/>
+        public async Task<BatchJobResponse> BatchJobGetAsync(string jobId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(jobId))
+                throw new ArgumentException("Job ID is required.", nameof(jobId));
+
+            var response = await _httpClient.GetAsync(
+                $"{_options.BaseUrl}/batch/jobs/{Uri.EscapeDataString(jobId)}",
+                cancellationToken).ConfigureAwait(false);
+
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<BatchJobResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize batch job response.");
+        }
+
+        /// <inheritdoc/>
+        public async Task<BatchJobResponse> BatchJobCancelAsync(string jobId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(jobId))
+                throw new ArgumentException("Job ID is required.", nameof(jobId));
+
+            var response = await _httpClient.PostAsync(
+                $"{_options.BaseUrl}/batch/jobs/{Uri.EscapeDataString(jobId)}/cancel",
+                null,
+                cancellationToken).ConfigureAwait(false);
+
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<BatchJobResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize batch job response.");
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<BatchJobResponse>> BatchJobsListAllAsync(CancellationToken cancellationToken = default)
+        {
+            var all = new List<BatchJobResponse>();
+            string? after = null;
+            while (true)
+            {
+                var page = await BatchJobsListAsync(limit: 100, after, cancellationToken).ConfigureAwait(false);
+                all.AddRange(page.Data);
+                if (page.Data.Count < 100 || all.Count >= page.Total)
+                    break;
+                after = page.Data.Count > 0 ? page.Data[^1].Id : null;
+            }
+            return all;
+        }
+
+        /// <inheritdoc/>
+        public async Task<BatchJobResponse> BatchJobWaitUntilCompleteAsync(string jobId, int pollIntervalMs = 5000, int timeoutMs = 86400000, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(jobId))
+                throw new ArgumentException("Job ID is required.", nameof(jobId));
+
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            while (true)
+            {
+                var job = await BatchJobGetAsync(jobId, cancellationToken).ConfigureAwait(false);
+                if (job.IsComplete)
+                    return job;
+                if (sw.ElapsedMilliseconds >= timeoutMs)
+                    return job;
+                await Task.Delay(pollIntervalMs, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        #endregion
+
+        #region Fine-Tuning API
+
+        /// <inheritdoc/>
+        public async Task<FineTuningJobsListResponse> FineTuningJobsListAsync(int limit = 20, string? after = null, CancellationToken cancellationToken = default)
+        {
+            var query = new List<string> { $"limit={limit}" };
+            if (!string.IsNullOrWhiteSpace(after))
+                query.Add($"after={Uri.EscapeDataString(after)}");
+            var url = $"{_options.BaseUrl}/fine_tuning/jobs?{string.Join("&", query)}";
+
+            var response = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<FineTuningJobsListResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize fine-tuning jobs list response.");
+        }
+
+        /// <inheritdoc/>
+        public async Task<FineTuningJobResponse> FineTuningJobCreateAsync(FineTuningJobCreateRequest request, CancellationToken cancellationToken = default)
+        {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+            if (string.IsNullOrWhiteSpace(request.Model))
+                throw new ArgumentException("Model is required.", nameof(request));
+            if (request.TrainingFiles == null || request.TrainingFiles.Count == 0)
+                throw new ArgumentException("At least one training file is required.", nameof(request));
+            if (request.Hyperparameters == null)
+                throw new ArgumentException("Hyperparameters are required.", nameof(request));
+
+            var jsonRequest = JsonSerializer.Serialize(request, _jsonOptions);
+            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync(
+                $"{_options.BaseUrl}/fine_tuning/jobs",
+                content,
+                cancellationToken).ConfigureAwait(false);
+
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<FineTuningJobResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize fine-tuning job response.");
+        }
+
+        /// <inheritdoc/>
+        public async Task<FineTuningJobResponse> FineTuningJobGetAsync(string jobId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(jobId))
+                throw new ArgumentException("Job ID is required.", nameof(jobId));
+
+            var response = await _httpClient.GetAsync(
+                $"{_options.BaseUrl}/fine_tuning/jobs/{Uri.EscapeDataString(jobId)}",
+                cancellationToken).ConfigureAwait(false);
+
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<FineTuningJobResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize fine-tuning job response.");
+        }
+
+        /// <inheritdoc/>
+        public async Task<FineTuningJobResponse> FineTuningJobCancelAsync(string jobId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(jobId))
+                throw new ArgumentException("Job ID is required.", nameof(jobId));
+
+            var response = await _httpClient.PostAsync(
+                $"{_options.BaseUrl}/fine_tuning/jobs/{Uri.EscapeDataString(jobId)}/cancel",
+                null,
+                cancellationToken).ConfigureAwait(false);
+
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<FineTuningJobResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize fine-tuning job response.");
+        }
+
+        /// <inheritdoc/>
+        public async Task<FineTuningJobResponse> FineTuningJobStartAsync(string jobId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(jobId))
+                throw new ArgumentException("Job ID is required.", nameof(jobId));
+
+            var response = await _httpClient.PostAsync(
+                $"{_options.BaseUrl}/fine_tuning/jobs/{Uri.EscapeDataString(jobId)}/start",
+                null,
+                cancellationToken).ConfigureAwait(false);
+
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<FineTuningJobResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize fine-tuning job response.");
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<FineTuningJobResponse>> FineTuningJobsListAllAsync(CancellationToken cancellationToken = default)
+        {
+            var all = new List<FineTuningJobResponse>();
+            string? after = null;
+            while (true)
+            {
+                var page = await FineTuningJobsListAsync(limit: 100, after, cancellationToken).ConfigureAwait(false);
+                all.AddRange(page.Data);
+                if (page.Data.Count < 100 || all.Count >= page.Total)
+                    break;
+                after = page.Data.Count > 0 ? page.Data[^1].Id : null;
+            }
+            return all;
+        }
+
+        /// <inheritdoc/>
+        public async Task<FineTuningJobResponse> FineTuningJobWaitUntilCompleteAsync(string jobId, int pollIntervalMs = 5000, int timeoutMs = 86400000, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(jobId))
+                throw new ArgumentException("Job ID is required.", nameof(jobId));
+
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            while (true)
+            {
+                var job = await FineTuningJobGetAsync(jobId, cancellationToken).ConfigureAwait(false);
+                if (job.IsComplete)
+                    return job;
+                if (sw.ElapsedMilliseconds >= timeoutMs)
+                    return job;
+                await Task.Delay(pollIntervalMs, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        #endregion
+
+        #region Models API
+
+        /// <inheritdoc/>
+        public async Task<ModelListResponse> ModelsListAsync(CancellationToken cancellationToken = default)
+        {
+            var response = await _httpClient.GetAsync($"{_options.BaseUrl}/models", cancellationToken).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                var result = JsonSerializer.Deserialize<ModelListResponse>(json, _jsonOptions);
+                if (result != null)
+                    return result;
+            }
+            catch (JsonException)
+            {
+                // API may return raw array
+            }
+
+            var array = JsonSerializer.Deserialize<List<ModelCard>>(json, _jsonOptions);
+            return new ModelListResponse { Data = array ?? new List<ModelCard>() };
+        }
+
+        /// <inheritdoc/>
+        public async Task<ModelCard> ModelsRetrieveAsync(string modelId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(modelId))
+                throw new ArgumentException("Model ID is required.", nameof(modelId));
+
+            var response = await _httpClient.GetAsync($"{_options.BaseUrl}/models/{Uri.EscapeDataString(modelId)}", cancellationToken).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<ModelCard>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize model response.");
+        }
+
+        /// <inheritdoc/>
+        public async Task<ModelDeleteResponse> ModelsDeleteAsync(string modelId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(modelId))
+                throw new ArgumentException("Model ID is required.", nameof(modelId));
+
+            var response = await _httpClient.DeleteAsync($"{_options.BaseUrl}/models/{Uri.EscapeDataString(modelId)}", cancellationToken).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<ModelDeleteResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize delete response.");
+        }
+
+        /// <inheritdoc/>
+        public async Task<ModelCard> ModelsUpdateAsync(string modelId, UpdateFTModelRequest request, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(modelId))
+                throw new ArgumentException("Model ID is required.", nameof(modelId));
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+
+            var jsonRequest = JsonSerializer.Serialize(request, _jsonOptions);
+            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PatchAsync(
+                $"{_options.BaseUrl}/fine_tuning/models/{Uri.EscapeDataString(modelId)}",
+                content,
+                cancellationToken).ConfigureAwait(false);
+
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<ModelCard>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize model response.");
+        }
+
+        /// <inheritdoc/>
+        public async Task<ArchiveFTModelResponse> ModelsArchiveAsync(string modelId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(modelId))
+                throw new ArgumentException("Model ID is required.", nameof(modelId));
+
+            var response = await _httpClient.PostAsync(
+                $"{_options.BaseUrl}/fine_tuning/models/{Uri.EscapeDataString(modelId)}/archive",
+                null,
+                cancellationToken).ConfigureAwait(false);
+
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<ArchiveFTModelResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize archive response.");
+        }
+
+        /// <inheritdoc/>
+        public async Task<UnarchiveFTModelResponse> ModelsUnarchiveAsync(string modelId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(modelId))
+                throw new ArgumentException("Model ID is required.", nameof(modelId));
+
+            var response = await _httpClient.DeleteAsync(
+                $"{_options.BaseUrl}/fine_tuning/models/{Uri.EscapeDataString(modelId)}/archive",
+                cancellationToken).ConfigureAwait(false);
+
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessOrThrowAsync(response, json, cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<UnarchiveFTModelResponse>(json, _jsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize unarchive response.");
+        }
+
+        #endregion
+
         #region Files API
 
         /// <inheritdoc/>
@@ -598,6 +1199,10 @@ namespace MistralSDK
             return JsonSerializer.Deserialize<MistralFileInfo>(json, _jsonOptions)
                 ?? throw new InvalidOperationException("Failed to deserialize file response.");
         }
+
+        /// <inheritdoc/>
+        public Task<MistralFileInfo> FilesUploadAsync(Stream fileStream, string fileName, FilePurposeType purpose, CancellationToken cancellationToken = default)
+            => FilesUploadAsync(fileStream, fileName, purpose.ToApiString(), cancellationToken);
 
         /// <inheritdoc/>
         public async Task<MistralFileInfo> FilesRetrieveAsync(string fileId, CancellationToken cancellationToken = default)
@@ -678,6 +1283,34 @@ namespace MistralSDK
 
             return JsonSerializer.Deserialize<OcrResponse>(json, _jsonOptions)
                 ?? throw new InvalidOperationException("Failed to deserialize OCR response.");
+        }
+
+        /// <inheritdoc/>
+        public async Task<string> OcrExtractTextAsync(Stream fileStream, string fileName, bool deleteAfter = true, CancellationToken cancellationToken = default)
+        {
+            if (fileStream == null)
+                throw new ArgumentNullException(nameof(fileStream));
+            if (string.IsNullOrWhiteSpace(fileName))
+                throw new ArgumentException("File name is required.", nameof(fileName));
+
+            string? fileId = null;
+            try
+            {
+                var file = await FilesUploadAsync(fileStream, fileName, FilePurposeType.Ocr, cancellationToken).ConfigureAwait(false);
+                fileId = file.Id;
+
+                var request = new OcrRequest { Document = OcrDocument.FromFileId(fileId) };
+                var response = await OcrProcessAsync(request, cancellationToken).ConfigureAwait(false);
+                return response.GetAllMarkdown();
+            }
+            finally
+            {
+                if (deleteAfter && !string.IsNullOrEmpty(fileId))
+                {
+                    try { await FilesDeleteAsync(fileId, cancellationToken).ConfigureAwait(false); }
+                    catch { /* Best effort cleanup */ }
+                }
+            }
         }
 
         #endregion
@@ -827,6 +1460,7 @@ namespace MistralSDK
 
     /// <summary>
     /// Represents a standardized response from the Mistral AI API.
+    /// All API methods return this type. Use <see cref="Data"/> for the strongly-typed response when <see cref="IsSuccess"/> is true.
     /// </summary>
     public class MistralResponse
     {
@@ -837,7 +1471,7 @@ namespace MistralSDK
 
         /// <summary>
         /// Gets or sets the message content from the API response.
-        /// For successful requests, this contains the generated text.
+        /// For successful chat/FIM requests, this contains the generated text.
         /// For errors, this contains the error message.
         /// </summary>
         public string Message { get; set; } = string.Empty;
@@ -848,14 +1482,25 @@ namespace MistralSDK
         public bool IsSuccess { get; set; }
 
         /// <summary>
-        /// Gets or sets the model used for the completion (only available for successful responses).
+        /// Gets or sets the model used (only available for successful completion responses).
         /// </summary>
         public string? Model { get; set; }
 
         /// <summary>
-        /// Gets or sets the usage information from the API response (only available for successful responses).
+        /// Gets or sets the usage information (only available for successful completion responses).
         /// </summary>
         public UsageInfo? Usage { get; set; }
+
+        /// <summary>
+        /// Gets or sets the strongly-typed response data when <see cref="IsSuccess"/> is true.
+        /// Cast to the appropriate type: <see cref="ChatCompletionResponse"/>, <see cref="EmbeddingResponse"/>, <see cref="ModerationResponse"/>, etc.
+        /// </summary>
+        public object? Data { get; set; }
+
+        /// <summary>
+        /// Gets the response data as the specified type. Returns null if Data is null or not of type T.
+        /// </summary>
+        public T? GetData<T>() => Data is T t ? t : default;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MistralResponse"/> class.

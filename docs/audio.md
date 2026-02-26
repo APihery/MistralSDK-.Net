@@ -57,7 +57,7 @@ var client = new MistralClient(apiKey);
 
 // Upload audio (use purpose "audio" for transcription)
 using var stream = File.OpenRead("meeting.mp3");
-var file = await client.FilesUploadAsync(stream, "meeting.mp3", FilePurpose.Audio);
+var file = await client.FilesUploadAsync(stream, "meeting.mp3", FilePurposeType.Audio);
 
 // Transcribe
 var request = AudioTranscriptionRequestBuilder.FromFileId(file.Id);
